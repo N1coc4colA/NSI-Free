@@ -187,6 +187,7 @@ class Runtime:
     forceRePaint = False
     _firstLoad = True
     _routines = []
+    _leaveCallBack = None
     
     def appendObject(self, obj):
         obj.setWindow(self.target_win)
@@ -204,15 +205,12 @@ class Runtime:
     
     def addRoutine(self, func):
         self._routines.append(func)
-    
-    def postRoutine(self):
-        ""
-    
-    def preRoutine(self):
-        ""
-    
+
     def quit(self):
         self.running = False;
+
+    def setEndCallBack(self, func):
+        self._leaveCallBack = func
     
     def execute(self):
         # Main Loop
@@ -271,6 +269,8 @@ class Runtime:
         
             pygame.display.update()
             self.postRoutine()
+        if self._leaveCallBack != None:
+            self._leaveCallBack()
 
 """
         TEMPLATE:
