@@ -11,6 +11,7 @@ class Widget(pygame.sprite.Sprite):
     def __init__(self):
        # Call the parent class (Sprite) constructor
        pygame.sprite.Sprite.__init__(self)
+       self.window = None
 
        self.image = pygame.Surface([self.rect.width, self.rect.height])
        #On rempli l'image
@@ -21,7 +22,8 @@ class Widget(pygame.sprite.Sprite):
         self.window = target
     
     def customPaint(self):
-        self.window.blit(self.image, (self.rect.x, self.rect.y))
+        if self.window != None:
+            self.window.blit(self.image, (self.rect.x, self.rect.y))
     
     def update(self, event):
         return True
@@ -47,8 +49,9 @@ class ProgressBar(Widget):
         return True
     
     def customPaint(self):
-        pygame.draw.rect(self.window, self.background, self.rect)
-        pygame.draw.rect(self.window, self.foreground, pygame.Rect((self.rect.x, self.rect.y), ((self.pos*self.rect.width/self.maximum), self.rect.height)))
+        if self.window != None:
+            pygame.draw.rect(self.window, self.background, self.rect)
+            pygame.draw.rect(self.window, self.foreground, pygame.Rect((self.rect.x, self.rect.y), ((self.pos*self.rect.width/self.maximum), self.rect.height)))
 
 class Label(Widget):    
     text = "Bonjour"
@@ -60,8 +63,9 @@ class Label(Widget):
         self.rect = pygame.Rect((0, 0), (200, 50))
     
     def customPaint(self):
-        self.image = self.font.render(self.text, True, self.color)
-        self.window.blit(self.image, (self.rect.x, self.rect.y))
+        if self.window != None:
+            self.image = self.font.render(self.text, True, self.color)
+            self.window.blit(self.image, (self.rect.x, self.rect.y))
     
     def update(self, event):
         return True
@@ -80,13 +84,14 @@ class Button(Label):
         self._callBack = func
 
     def customPaint(self):
-        if self.clicked:
-           pygame.draw.rect(self.window, self.background_clicked, self.rect)
-        else:
-           pygame.draw.rect(self.window, self.background, self.rect)
-        self.image = self.font.render(self.text, True, self.color)
-        text_width, text_height = self.font.size(self.text)
-        self.window.blit(self.image, (self.rect.x + ((self.rect.width-text_width)/2), self.rect.y + ((self.rect.height-text_height)/2)))
+        if self.window != None:
+            if self.clicked:
+                pygame.draw.rect(self.window, self.background_clicked, self.rect)
+            else:
+                pygame.draw.rect(self.window, self.background, self.rect)
+            self.image = self.font.render(self.text, True, self.color)
+            text_width, text_height = self.font.size(self.text)
+            self.window.blit(self.image, (self.rect.x + ((self.rect.width-text_width)/2), self.rect.y + ((self.rect.height-text_height)/2)))
     
     def update(self, event):
         if event != None and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -150,7 +155,6 @@ class SpriteObject(Widget):
                 self.sourceTicks = pygame.time.get_ticks()
                 self.updateTimer = False
             self.makePaintUpdate = True
-            print("paint")
             return (event != None)
         return False
 
@@ -167,7 +171,8 @@ class Scene(Widget):
 
     def customPaint(self):
         if self.scaled != None:
-            self.window.blit(self.scaled, self.rect)
+            if self.window != None:
+                self.window.blit(self.scaled, self.rect)
 
     def update(self, event):
         if self.window != None:
@@ -188,7 +193,11 @@ class Runtime:
     _firstLoad = True
     _routines = []
     _leaveCallBack = None
-    
+    _paintCallBack = None
+
+    def countObjects(self):
+        return len(self.objectList)
+
     def appendObject(self, obj):
         obj.setWindow(self.target_win)
         self.objectList.append(obj)
@@ -198,10 +207,16 @@ class Runtime:
         for obj in self.objectList:
             obj.setWindow(win)
             obj.update()
+
+    def setPaintCallBack(self, func):
+        self._paintCallBack = func
     
     def paintWindow(self):
-        pygame.draw.rect(self.target_win, (200, 200, 200),(0, 0, 300, 600))
-        pygame.draw.rect(self.target_win, (255, 255, 255),(300, 0, 300, 600))
+        if self._paintCallBack == None:
+            pygame.draw.rect(self.target_win, (200, 200, 200),(0, 0, 300, 600))
+            pygame.draw.rect(self.target_win, (255, 255, 255),(300, 0, 300, 600))
+        else:
+            self._paintCallBack(self.target_win)
     
     def addRoutine(self, func):
         self._routines.append(func)
@@ -215,9 +230,7 @@ class Runtime:
     def execute(self):
         # Main Loop
         self.running = True
-        while self.running:
-            self.preRoutine()
-            
+        while self.running:            
             for routine in self._routines:
                 routine()
             
@@ -268,7 +281,6 @@ class Runtime:
                     j+=1
         
             pygame.display.update()
-            self.postRoutine()
         if self._leaveCallBack != None:
             self._leaveCallBack()
 
