@@ -8,32 +8,36 @@ class ClickableItem(runtime.Widget):
     highlighted = (100, 100, 100)
     background = (150, 150, 150)
     scaled = None
-    label = runtime.Label()
+    label = None
     _fp = None
     _callBack = None
     _ft = True
 
-    def __init__(self):
+    def __init__(self, name):
         runtime.Widget.__init__(self)
+        self.label = runtime.Label()
+        self.label.text = name
         self.label.font = pg.font.SysFont(None, 40)
         self.label.color = (255, 255, 255)
-    
+
     def setCallBack(self, func):
-        self._callBack = func    
+        self._callBack = func
 
     def setImage(self, path):
         self._fp = path
         if self.window != None:
             self.scaled = pg.transform.scale(pg.image.load(path), (100, 100))
-    
-    def printRect(self):
-        print(self.rect)
-    
+
     def setX(self, v):
         self.rect = pg.Rect((v, self.rect.y), (120, 160))
-    
+
     def setY(self, v):
         self.rect = pg.Rect((self.rect.x, v), (120, 160))
+
+    def setText(self, t):
+        self.label.setText(t)
+        self.makePaintUpdate = True
+        print("Vhanged for", self.label.text)
 
     def customPaint(self):
         if self.label.rect.x != (self.rect.x + 10):
@@ -55,11 +59,11 @@ class ClickableItem(runtime.Widget):
             if self.window != None:
                 self.window.blit(self.scaled, pg.Rect((self.rect.x + 10, self.rect.y + 5), (100, 100)))
         self.label.customPaint()
-    
+
     def update(self, event):
         if self.label.window == None and self.window != None:
             self.label.window = self.window
-        
+
         if event != None and event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(pg.mouse.get_pos()):
                 self.clicked = True
@@ -78,7 +82,7 @@ class ClickableItem(runtime.Widget):
                 if self._callBack != None:
                     self._callBack(self._fp)
             return (self.rect.collidepoint(pg.mouse.get_pos()) == False)
-        
+
         else:
             if self.label.update(event) == False:
                 self.makePaintUpdate = True
@@ -94,6 +98,7 @@ class MapChooser(runtime.Widget):
 
     def __init__(self):
         runtime.Widget.__init__(self)
+        self._rtm.setPaintCallBack(self.customPaint)
         self._rtm.addRoutine(self.postCheck)
 
     def postCheck(self):
@@ -103,17 +108,20 @@ class MapChooser(runtime.Widget):
 
     def popup(self):
         if self._rtm.running == False:
-            self._win = pg.display.set_mode((600, 600))
+            self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)
             self.closed = False
             self.loadElements()
             self._rtm.forceRePaint = True
             self._rtm.execute()
-    
+
     def onItemClick(self, fp):
         if self._callBack != None:
             self._callBack(fp)
+
+    def winPaint(self, src, win):
+        pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
 
     def loadElements(self):
         j1 = runtime.Label()
@@ -143,7 +151,7 @@ class MapChooser(runtime.Widget):
             i+=1
         keys = list(compatible.keys())
         values = list(compatible.values())
-        
+
         left = 20
         top = 60
         spacing = 5
@@ -152,24 +160,18 @@ class MapChooser(runtime.Widget):
         i = 0
         items = []
         while i<len(keys):
-            it = ClickableItem()
+            it = ClickableItem(values[i])
             it.setImage(keys[i])
-            it.label.text = values[i]
+            it.makePaintUpdate = True
             it.setCallBack(self.onItemClick)
+            it.setX(column*150 + spacing*column + left)
+            it.setY(row*170 + spacing*row + top)
+            if column == 4:
+                column = 0
+                row += 1
+            column += 1
             items.append(it)
-            self._rtm.appendObject(items[i])
+            self._rtm.appendObject(it)
             i+=1
-
-        i = 0
-        print("Setting manually")
-        for obj in self._rtm.objectList:
-            if isinstance(obj, ClickableItem):
-                items[i].setX(column*100 + spacing*column + left)
-                items[i].setY(row*100 + spacing*row + top)
-                items[i].printRect()
-                if column == 4:
-                    column = 0
-                    row += 1
-                column += 1
 
 MapChooser().popup()

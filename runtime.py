@@ -17,56 +17,60 @@ class Widget(pygame.sprite.Sprite):
        #On rempli l'image
        self.image.fill((0, 0, 0))
        #self.rect = self.image.get_rect()
-    
+
     def setWindow(self, target):
         self.window = target
-    
+
     def customPaint(self):
         if self.window != None:
             self.window.blit(self.image, (self.rect.x, self.rect.y))
-    
+
     def update(self, event):
         return True
 
 class Picture(Widget):
     def __init__(self):
         Widget.__init__(self)
-    
+
     def customPaint(self):
         size = self.image.get_size()
-        pygame.draw.rect(pygame.Surface(size, pg.SRCALPHA), (255, 255, 255), (0, 0, *size), border_radius=roundness)
+        pygame.draw.rect(pygame.Surface(size, pygame.SRCALPHA), (255, 255, 255), (0, 0, size), border_radius=roundness)
 
 class ProgressBar(Widget):
     maximum = 10
     pos = 3
     background = (0, 0, 0)
     foreground = (255, 0, 0)
-    
+
     def __init__(self):
         Widget.__init__(self)
-    
+
     def update(self, event):
         return True
-    
+
     def customPaint(self):
         if self.window != None:
             pygame.draw.rect(self.window, self.background, self.rect)
             pygame.draw.rect(self.window, self.foreground, pygame.Rect((self.rect.x, self.rect.y), ((self.pos*self.rect.width/self.maximum), self.rect.height)))
 
-class Label(Widget):    
+class Label(Widget):
     text = "Bonjour"
     font = pygame.font.SysFont(None, 104)
     color = (0, 0, 0)
-    
+
     def __init__(self):
         Widget.__init__(self)
         self.rect = pygame.Rect((0, 0), (200, 50))
-    
+
     def customPaint(self):
         if self.window != None:
             self.image = self.font.render(self.text, True, self.color)
             self.window.blit(self.image, (self.rect.x, self.rect.y))
-    
+
+    def setText(self, t):
+        self.makePaintUpdate = True
+        self.text = t
+
     def update(self, event):
         return True
 
@@ -75,7 +79,7 @@ class Button(Label):
     background = (100, 100, 255)
     background_clicked = (175, 175, 255)
     _callBack = None
-    
+
     def __init__(self):
         Label.__init__(self)
         self.font = pygame.font.SysFont(None, 54)
@@ -92,7 +96,7 @@ class Button(Label):
             self.image = self.font.render(self.text, True, self.color)
             text_width, text_height = self.font.size(self.text)
             self.window.blit(self.image, (self.rect.x + ((self.rect.width-text_width)/2), self.rect.y + ((self.rect.height-text_height)/2)))
-    
+
     def update(self, event):
         if event != None and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(pygame.mouse.get_pos()):
@@ -120,26 +124,26 @@ class SpriteObject(Widget):
     downKey = pygame.K_DOWN
     sourceTicks = pygame.time.get_ticks()
     updateTimer = True
-    
+
     def __init__(self):
         Widget.__init__(self)
-    
+
     def handleLeft(self):
         if ((pygame.time.get_ticks() - self.sourceTicks)/1000)>0.05:
             self.rect.x = self.rect.x -2
             self.updateTimer = True
-        
+
     def handleRight(self):
         if ((pygame.time.get_ticks() - self.sourceTicks)/1000)>0.05:
             self.rect.x = self.rect.x +2
             self.updateTimer = True
-    
+
     def handleUp(self):
         ""
-    
+
     def handleDown(self):
         ""
-    
+
     def update(self, event):
         if event == None or event.type == pygame.KEYDOWN:
             pressed_keys = pygame.key.get_pressed()
@@ -183,7 +187,7 @@ class Scene(Widget):
                     self.scaled = pygame.transform.scale(self.image, (self.window.get_width(), self.window.get_height()))
                 return True
         return True
-            
+
 
 class Runtime:
     objectList = []
@@ -201,7 +205,7 @@ class Runtime:
     def appendObject(self, obj):
         obj.setWindow(self.target_win)
         self.objectList.append(obj)
-    
+
     def setWindow(self, win):
         self.target_win = win
         for obj in self.objectList:
@@ -210,14 +214,14 @@ class Runtime:
 
     def setPaintCallBack(self, func):
         self._paintCallBack = func
-    
+
     def paintWindow(self):
         if self._paintCallBack == None:
-            pygame.draw.rect(self.target_win, (200, 200, 200),(0, 0, 300, 600))
-            pygame.draw.rect(self.target_win, (255, 255, 255),(300, 0, 300, 600))
+            pygame.draw.rect(self.target_win, (200, 200, 200),(0, 0, self.target_win.get_rect().width/2, self.target_win.get_rect().height))
+            pygame.draw.rect(self.target_win, (255, 255, 255),(self.target_win.get_rect().width/2, 0, self.target_win.get_rect().width/2, self.target_win.get_rect().height))
         else:
             self._paintCallBack(self.target_win)
-    
+
     def addRoutine(self, func):
         self._routines.append(func)
 
@@ -226,14 +230,14 @@ class Runtime:
 
     def setEndCallBack(self, func):
         self._leaveCallBack = func
-    
+
     def execute(self):
         # Main Loop
         self.running = True
-        while self.running:            
+        while self.running:
             for routine in self._routines:
                 routine()
-            
+
             eventList = pygame.event.get()
             shouldRePaint = False
             if not eventList or self._firstLoad:
@@ -279,7 +283,7 @@ class Runtime:
                     else:
                         continuePainting = False
                     j+=1
-        
+
             pygame.display.update()
         if self._leaveCallBack != None:
             self._leaveCallBack()
