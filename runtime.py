@@ -34,7 +34,7 @@ class Picture(Widget):
 
     def customPaint(self):
         size = self.image.get_size()
-        pygame.draw.rect(pygame.Surface(size, pygame.SRCALPHA), (255, 255, 255), (0, 0, size), border_radius=roundness)
+        pygame.draw.rect(pygame.Surface(size, pygame.SRCALPHA), (255, 255, 255), (0, 0, *size), border_radius=roundness)
 
 class ProgressBar(Widget):
     maximum = 10

@@ -76,7 +76,6 @@ class KeysSettings(runtime.Widget):
             self._rtm.addRoutine(self.postCheck)
             self.closed = False
             self.loadElements()
-            self._rtm.forceRePaint = True
             self._rtm.execute()
 
     def loadElements(self):
@@ -131,5 +130,3 @@ class KeysSettings(runtime.Widget):
             y = list2[i].rect.y + 20
             list1[i].rect.y = y
             list1[i+7].rect.y = y
-
-KeysSettings().popup()

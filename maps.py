@@ -98,7 +98,7 @@ class MapChooser(runtime.Widget):
 
     def __init__(self):
         runtime.Widget.__init__(self)
-        self._rtm.setPaintCallBack(self.customPaint)
+        self._rtm.setPaintCallBack(self.winPaint)
         self._rtm.addRoutine(self.postCheck)
 
     def postCheck(self):
@@ -113,14 +113,13 @@ class MapChooser(runtime.Widget):
             self._rtm.addRoutine(self.postCheck)
             self.closed = False
             self.loadElements()
-            self._rtm.forceRePaint = True
             self._rtm.execute()
 
     def onItemClick(self, fp):
         if self._callBack != None:
             self._callBack(fp)
 
-    def winPaint(self, src, win):
+    def winPaint(self,  win):
         pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
 
     def loadElements(self):
@@ -166,12 +165,10 @@ class MapChooser(runtime.Widget):
             it.setCallBack(self.onItemClick)
             it.setX(column*150 + spacing*column + left)
             it.setY(row*170 + spacing*row + top)
+            column += 1
             if column == 4:
                 column = 0
                 row += 1
-            column += 1
             items.append(it)
             self._rtm.appendObject(it)
             i+=1
-
-MapChooser().popup()
