@@ -266,9 +266,11 @@ class Player(runtime.Widget):
 			#We guess there's an update that must be done
 			self.makePaintUpdate = True
 			self.processAttackTimers()
-			return (event != None)
+			#We MUST share the events! Else the other player become buggy, it does not move as expected...
+			return True
 		self.processAttackTimers()
-		return False
+		#We MUST share the events! Else the other player become buggy...
+		return True
 
 	def customPaint(self):
 		#We MUST not have 2+ motions painting in the same time! Do you imagine how much ugly it could be??

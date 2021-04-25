@@ -4,6 +4,7 @@ import keys
 import pygame as pg
 
 class TopBar(runtime.Widget):
+	"""A top bar with player's name and LP, that's a widget."""
 	_p1l = runtime.Label()
 	_p2l = runtime.Label()
 	_p2p = None
@@ -45,7 +46,9 @@ class TopBar(runtime.Widget):
 		self._p1p.background = (200, 200, 200)
 
 	def customPaint(self):
+		"""Paints the widget"""
 		if self.window != None:
+			#Generate the painting by each level. The first is the widget itself as it contains the others.
 			super().customPaint()
 			self._p1l.customPaint()
 			self._p2l.customPaint()
@@ -53,29 +56,35 @@ class TopBar(runtime.Widget):
 			self._p2p.customPaint()
 
 	def setLP1(self, val):
+		"""Set Life Points of the 1st player and updates it's LP bar."""
 		self._p1p.pos = val
 		self.makePaintUpdate = True
 
 	def setLP2(self, val):
+		"""Set the Life Points of the 2nd player and updates it's LP bar."""
 		self._p2p.pos = val
 		self.makePaintUpdate = True
 
 	def setMLP1(self, val):
+		"""Set the Maximum Life Points of the 1st player."""
 		self._p1p.maximum = val
 		self.makePaintUpdate = True
 
 	def setMLP2(self, val):
+		"""Set the Maximum Life Points of the 1st player."""
 		self._p2p.maximum = val
 		self.makePaintUpdate = True
 
 	def setWindow(self, win):
 		self.window = win
+		#Set for the content too, they need it to be drawn.
 		self._p1l.setWindow(win)
 		self._p2l.setWindow(win)
 		self._p1p.setWindow(win)
 		self._p2p.setWindow(win)
 
 	def paintCheck(self):
+		"""Generates the makePaintUpdate state of the widget by know the makePaintUpdate of children and itself."""
 		return (self.makePaintUpdate or self._p1l.makePaintUpdate or self._p1p.makePaintUpdate or self._p2l.makePaintUpdate or self._p2p.makePaintUpdate)
 
 	def update(self, event):
@@ -138,6 +147,7 @@ class Map():
 				elif self._j1.rect.colliderect(a.rect):
 					self._j1.touched(a)
 					a.destruction()
+		#Check for the other player
 		if (self._j1 != None):
 			for a in self._pendingAttacks2:
 				if (self._inAttack1 != None) and (self._inAttack1.rect.colliderect(a.rect)):
@@ -187,6 +197,7 @@ class Map():
 					print(val - self._rtm.countObjects())
 
 	def postCheck(self):
+		"""To notify the other objects that have access to this instance that it closed the win."""
 		if self.closed == True and self._rtm.running == True:
 			self.closed = True
 			self._rtm.quit()
@@ -245,7 +256,6 @@ class Map():
 		self._j2 = self._rtm.appendObject(self._j2)
 
 	def setupJ1Keys(self):
-		print("map:\n", keys.switcher)
 		"""Get keys that have been set in configuration for the first player."""
 		self._j1.leftKey =  keys.switcher["p1_left"]
 		self._j1.rightKey = keys.switcher["p1_right"]
@@ -268,6 +278,7 @@ class Map():
 		pass
 
 	def popup(self):
+		"""Setup the win and Runtime env."""
 		if self._rtm.running == False:
 			#Set the window
 			self._win = pg.display.set_mode((1200, 800))

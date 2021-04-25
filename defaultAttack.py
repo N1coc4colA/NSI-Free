@@ -30,23 +30,28 @@ class MovingAttack(Attack):
 		self._oldTime = pg.time.get_ticks()
 
 	def destruction(self):
+		"""Changes the painting and stops the move to animate the destruction of the attack."""
 		self._shouldDest = True
 		self._oldTime = time.time()
 		self._indice = 0
 
 	def remove(self):
+		"""Called when going OOR, it must destroy itself."""
 		pass
 
 	def setWindow(self, target):
 		self.window = target
 
 	def posUpdate(self):
+		"""Generates the position updates (X, Y)"""
 		if (((pg.time.get_ticks() - self._oldTime)/1000) > self._speed):
 			self.rect.x = self.rect.x + self._indice
 			self.makePaintUpdate = True
 			self._oldTime = pg.time.get_ticks()
 
 	def customPaint(self):
+		"""Paints the moving attack"""
+		#Use at painting cause we have an issue with the update handling in Runtime or in our classes
 		if self.enablePosUpdateOnDraw == True:
 			self.posUpdate()
 		if self.window != None:
@@ -58,6 +63,7 @@ class MovingAttack(Attack):
 				pg.draw.rect(self.window, (0, 0, 0), self.rect)
 
 	def update(self, event):
+		"""Process events and other internal data to generate this object's updates of internal data."""
 		if self._shouldDest:
 			if (not self.destructionFrames) == False:
 				if (self._currDest < len(self.destructionFrames)):
