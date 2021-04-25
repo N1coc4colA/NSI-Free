@@ -1,29 +1,25 @@
 #!/usr/bin/python3
 
 import pygame, sys
+import defaultAttack
 pygame.init()
 
 class Widget(pygame.sprite.Sprite):
-    rect = pygame.Rect((0, 0), (200, 200))
-    image = None
-    makePaintUpdate = False
-
     def __init__(self):
        # Call the parent class (Sprite) constructor
        pygame.sprite.Sprite.__init__(self)
        self.window = None
-
-       self.image = pygame.Surface([self.rect.width, self.rect.height])
-       #On rempli l'image
-       self.image.fill((0, 0, 0))
-       #self.rect = self.image.get_rect()
+       self.color = (0, 0, 0)
+       self.rect = pygame.Rect((0, 0), (200, 200))
+       self.makePaintUpdate = False
+       self.RuntimeOUID = -1
 
     def setWindow(self, target):
         self.window = target
 
     def customPaint(self):
         if self.window != None:
-            self.window.blit(self.image, (self.rect.x, self.rect.y))
+            pygame.draw.rect(self.window, self.color, self.rect)
 
     def update(self, event):
         return True
@@ -37,13 +33,13 @@ class Picture(Widget):
         pygame.draw.rect(pygame.Surface(size, pygame.SRCALPHA), (255, 255, 255), (0, 0, *size), border_radius=roundness)
 
 class ProgressBar(Widget):
-    maximum = 10
-    pos = 3
-    background = (0, 0, 0)
-    foreground = (255, 0, 0)
-
     def __init__(self):
         Widget.__init__(self)
+        self.rect = pygame.Rect((0, 0), (200, 200))
+        self.maximum = 10
+        self.pos = 3
+        self.foreground = (255, 0, 0)
+        self.background = (0, 0, 0)
 
     def update(self, event):
         return True
@@ -56,11 +52,11 @@ class ProgressBar(Widget):
 class Label(Widget):
     text = "Bonjour"
     font = pygame.font.SysFont(None, 104)
-    color = (0, 0, 0)
 
     def __init__(self):
         Widget.__init__(self)
         self.rect = pygame.Rect((0, 0), (200, 50))
+        self.color = (0, 0, 0)
 
     def customPaint(self):
         if self.window != None:
@@ -117,51 +113,6 @@ class Button(Label):
             return False
         return True
 
-class SpriteObject(Widget):
-    leftKey = pygame.K_LEFT
-    rightKey = pygame.K_RIGHT
-    upKey = pygame.K_UP
-    downKey = pygame.K_DOWN
-    sourceTicks = pygame.time.get_ticks()
-    updateTimer = True
-
-    def __init__(self):
-        Widget.__init__(self)
-
-    def handleLeft(self):
-        if ((pygame.time.get_ticks() - self.sourceTicks)/1000)>0.05:
-            self.rect.x = self.rect.x -2
-            self.updateTimer = True
-
-    def handleRight(self):
-        if ((pygame.time.get_ticks() - self.sourceTicks)/1000)>0.05:
-            self.rect.x = self.rect.x +2
-            self.updateTimer = True
-
-    def handleUp(self):
-        ""
-
-    def handleDown(self):
-        ""
-
-    def update(self, event):
-        if event == None or event.type == pygame.KEYDOWN:
-            pressed_keys = pygame.key.get_pressed()
-            if pressed_keys[self.leftKey]:
-                self.handleLeft()
-            if pressed_keys[self.rightKey]:
-                self.handleRight()
-            if pressed_keys[self.upKey]:
-                self.handleUp()
-            if pressed_keys[self.downKey]:
-                self.handleDown()
-            if self.updateTimer:
-                self.sourceTicks = pygame.time.get_ticks()
-                self.updateTimer = False
-            self.makePaintUpdate = True
-            return (event != None)
-        return False
-
 class Scene(Widget):
     scaled = None
 
@@ -194,23 +145,40 @@ class Runtime:
     target_win = None
     running = False
     forceRePaint = False
+    afterPropagationUpdate = False
     _firstLoad = True
     _routines = []
+    _mroutines = []
+    _oneShotRoutines = []
     _leaveCallBack = None
     _paintCallBack = None
+    _ouid = 0
 
     def countObjects(self):
         return len(self.objectList)
 
     def appendObject(self, obj):
         obj.setWindow(self.target_win)
+        obj.RutimeOUID = self._ouid
+        self._ouid += 1
         self.objectList.append(obj)
+        return obj
+
+    def removeObject(self, ouid):
+        if ouid != -1:
+            i = 0
+            nf = True
+            while (nf == True) and (i<len(self.objectList)):
+                if (self.objectList[i].RuntimeOUID == ouid):
+                    self.objectList.pop(i)
+                    nf = False
+                i+=1
 
     def setWindow(self, win):
         self.target_win = win
         for obj in self.objectList:
             obj.setWindow(win)
-            obj.update()
+            obj.update(None)
 
     def setPaintCallBack(self, func):
         self._paintCallBack = func
@@ -225,6 +193,12 @@ class Runtime:
     def addRoutine(self, func):
         self._routines.append(func)
 
+    def addMidRoutine(self, func):
+        self._mroutines.append(func)
+
+    def addOSR(self, func):
+        self._oneShotRoutines.append(func)
+
     def quit(self):
         self.running = False;
 
@@ -238,6 +212,11 @@ class Runtime:
             for routine in self._routines:
                 routine()
 
+            for osr in self._oneShotRoutines:
+                osr()
+            if (not self._oneShotRoutines) == False:
+                self._oneShotRoutines.clear()
+
             eventList = pygame.event.get()
             shouldRePaint = False
             if not eventList or self._firstLoad:
@@ -247,7 +226,7 @@ class Runtime:
                     if self.objectList[i] != None:
                         run = self.objectList[i].update(None)
                         if self.objectList[i].makePaintUpdate == True:
-                            shouldUpdate = True
+                            shouldRePaint = True
                     else:
                         run = False
                     i+=1
@@ -259,16 +238,30 @@ class Runtime:
                         quit(1)
                     else:
                         run = True
+                        propagate = False
                         i = 0
                         #If an object accepts it, it means others must not get it: stop the loop
                         while run and i<len(self.objectList):
                             if self.objectList[i] != None:
-                                run = self.objectList[i].update(event)
-                                if self.objectList[i].makePaintUpdate == True:
-                                    shouldUpdate = True
+                                if propagate and self.afterPropagationUpdate:
+                                    propagate = self.objectList[i].update(None)
+                                    if self.objectList[i].makePaintUpdate == True:
+                                         shouldRePaint = True
+                                else:
+                                    run = self.objectList[i].update(event)
+                                    if (self.afterPropagationUpdate == True) and (run == False):
+                                         propagate = self.objectList[i].update(None)
+                                         if self.objectList[i].makePaintUpdate == True:
+                                              shouldRePaint = True
+                                         propagate = True
+                                         run = True
+                                    if self.objectList[i].makePaintUpdate == True:
+                                         shouldRePaint = True
                             else:
                                 run = False
                             i+=1
+            for mrtn in self._mroutines:
+                mrtn()
             #Make new paintings if needed
             if (shouldRePaint == True) or (self.forceRePaint == True) or (self._firstLoad == True) :
                 if self._firstLoad:

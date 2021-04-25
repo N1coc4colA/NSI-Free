@@ -40,6 +40,7 @@ class ClickableItem(runtime.Widget):
         print("Vhanged for", self.label.text)
 
     def customPaint(self):
+		#In case the widget is moved
         if self.label.rect.x != (self.rect.x + 10):
             self.label.rect.x = (self.rect.x + 10)
         if self.label.rect.width != (self.rect.width - 20):

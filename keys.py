@@ -7,18 +7,18 @@ global switcher
 switcher = {
 "p1_left": pg.K_LEFT,
 "p1_right": pg.K_RIGHT,
-"p1_up  ": pg.K_UP,
+"p1_up": pg.K_UP,
 "p1_down": pg.K_DOWN,
-"p1_at1 ": pg.K_KP_MINUS,
-"p1_at2 ": pg.K_KP_PLUS,
-"p1_at3 ": pg.K_KP_ENTER,
+"p1_at1": pg.K_KP_MINUS,
+"p1_at2": pg.K_KP_PLUS,
+"p1_at3": pg.K_KP_ENTER,
 "p2_left": pg.K_q,
 "p2_right": pg.K_d,
-"p2_up  ": pg.K_z,
+"p2_up": pg.K_z,
 "p2_down": pg.K_s,
-"p2_at1 ": pg.K_TAB,
-"p2_at2 ": pg.K_a,
-"p2_at3 ": pg.K_e
+"p2_at1": pg.K_TAB,
+"p2_at2": pg.K_a,
+"p2_at3": pg.K_e
 }
 
 class KeyButton(runtime.Button):
