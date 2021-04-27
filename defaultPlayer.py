@@ -17,14 +17,14 @@ class Motion:
 	_speed = None
 
 	def __init__(self, motionDir, source = None, xi = [], yi = [], speed = 0.05):
-		frameList = os.listdir(motionDir)
+		fList = os.listdir(motionDir)
 		frames = []
 		i = 0
 		#Get .image files (in alphabetical order) to set them as frames
 		while i<len(fList):
 			filePath = os.path.splitext(fList[i])
-			if filePath[1] == ".image":
-				frames.append(pg.image.load(fList[i]))
+			#if filePath[1] == ".image":
+			frames.append(pg.image.load(fList[i]))
 			i+=1
 		self._frames = frames
 		self._speed = speed
@@ -120,6 +120,8 @@ class Player(runtime.Widget):
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
+		self.leftMotion = Motion("C:\\Users\\clm_pedagogie.DDEC\\Downloads\\NSI-Free-main\\NSI-Free-main\\players\\Perso1\\ag")
+		self.rightMotion = Motion("C:\\Users\\clm_pedagogie.DDEC\\Downloads\\NSI-Free-main\\NSI-Free-main\\players\\Perso1\\ad")
 
 	def moveUp(self):
 		"""Jump handler, move up"""
