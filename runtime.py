@@ -17,6 +17,9 @@ class Widget(pygame.sprite.Sprite):
     def setWindow(self, target):
         self.window = target
 
+    def setOUID(self, t):
+        self.RuntimeOUID = t
+
     def customPaint(self):
         if self.window != None:
             pygame.draw.rect(self.window, self.color, self.rect)
@@ -30,7 +33,7 @@ class Picture(Widget):
 
     def customPaint(self):
         size = self.image.get_size()
-        pygame.draw.rect(pygame.Surface(size, pygame.SRCALPHA), (255, 255, 255), (0, 0, *size), border_radius=roundness)
+        pygame.draw.rect(pygame.Surface(size, pygame.SRCALPHA), (255, 255, 255), (0, 0, size), border_radius=roundness)
 
 class ProgressBar(Widget):
     def __init__(self):
@@ -40,6 +43,7 @@ class ProgressBar(Widget):
         self.pos = 3
         self.foreground = (255, 0, 0)
         self.background = (0, 0, 0)
+        self.minimum = 0
 
     def update(self, event):
         return True
@@ -47,7 +51,8 @@ class ProgressBar(Widget):
     def customPaint(self):
         if self.window != None:
             pygame.draw.rect(self.window, self.background, self.rect)
-            pygame.draw.rect(self.window, self.foreground, pygame.Rect((self.rect.x, self.rect.y), ((self.pos*self.rect.width/self.maximum), self.rect.height)))
+            if (self.pos >= self.minimum):
+                pygame.draw.rect(self.window, self.foreground, pygame.Rect((self.rect.x, self.rect.y), ((self.pos*self.rect.width/self.maximum), self.rect.height)))
 
 class Label(Widget):
     text = "Bonjour"
@@ -153,13 +158,14 @@ class Runtime:
     _leaveCallBack = None
     _paintCallBack = None
     _ouid = 0
+    _fromInternalNeedsRepaint = False
 
     def countObjects(self):
         return len(self.objectList)
 
     def appendObject(self, obj):
         obj.setWindow(self.target_win)
-        obj.RutimeOUID = self._ouid
+        obj.setOUID(self._ouid)
         self._ouid += 1
         self.objectList.append(obj)
         return obj
@@ -173,6 +179,9 @@ class Runtime:
                     self.objectList.pop(i)
                     nf = False
                 i+=1
+        if not nf:
+            #We have to ensure that the object disappear from the surface, so repaint all
+            self._fromInternalNeedsRepaint = True
 
     def setWindow(self, win):
         self.target_win = win
@@ -185,8 +194,8 @@ class Runtime:
 
     def paintWindow(self):
         if self._paintCallBack == None:
-            pygame.draw.rect(self.target_win, (200, 200, 200),(0, 0, self.target_win.get_rect().width/2, self.target_win.get_rect().height))
-            pygame.draw.rect(self.target_win, (255, 255, 255),(self.target_win.get_rect().width/2, 0, self.target_win.get_rect().width/2, self.target_win.get_rect().height))
+            pygame.draw.rect(self.target_win, (200, 200, 200), (0, 0, self.target_win.get_rect().width/2, self.target_win.get_rect().height))
+            pygame.draw.rect(self.target_win, (255, 255, 255), (self.target_win.get_rect().width/2, 0, self.target_win.get_rect().width/2, self.target_win.get_rect().height))
         else:
             self._paintCallBack(self.target_win)
 
@@ -260,10 +269,11 @@ class Runtime:
                             else:
                                 run = False
                             i+=1
+            #Mid routines, for example, if you want to remove something that have been updated before it gets painted
             for mrtn in self._mroutines:
                 mrtn()
             #Make new paintings if needed
-            if (shouldRePaint == True) or (self.forceRePaint == True) or (self._firstLoad == True) :
+            if (shouldRePaint == True) or (self.forceRePaint == True) or (self._firstLoad == True) or (self._fromInternalNeedsRepaint == True):
                 if self._firstLoad:
                     self._firstLoad = False
                 self.paintWindow()

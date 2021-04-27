@@ -6,6 +6,7 @@ class Attack():
 	def __init__(self):
 		self.degs = 1
 		self.rect = pg.Rect((0, 0), (32, 32))
+		self.destructionFinished = False
 
 class MovingAttack(Attack):
 	image = None
@@ -36,11 +37,14 @@ class MovingAttack(Attack):
 		self._indice = 0
 
 	def remove(self):
-		"""Called when going OOR, it must destroy itself."""
-		pass
+		"""Called when going OOR or at end of destruction animation, it must destroy itself."""
+		del self
 
 	def setWindow(self, target):
 		self.window = target
+
+	def setOUID(self, v):
+		self.RuntimeOUID = v
 
 	def posUpdate(self):
 		"""Generates the position updates (X, Y)"""
@@ -72,9 +76,9 @@ class MovingAttack(Attack):
 						self._currDest += 1
 						self._oldTime = pg.time.get_ticks()
 				else:
-					del self
+					self.destructionFinished = True
 			else:
-				del self
+				self.destructionFinished = True
 		else:
 			self.posUpdate()
 		return True

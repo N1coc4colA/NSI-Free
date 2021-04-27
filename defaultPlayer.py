@@ -144,7 +144,7 @@ class Player(runtime.Widget):
 					if ((self.rect.y + self.rect.height) < self.min_y):
 						self.rect.y = self.min_y - self.rect.height
 
-				#Else, it means that we riched the bottom, and we no more need to make this move, and so to 
+				#Else, it means that we riched the bottom, and we no more need to make this move, and so to
 				else:
 					self._lockAcc = False
 					self._lockFunc = None
@@ -205,6 +205,7 @@ class Player(runtime.Widget):
 		#Use the timer to don't make too much attacks too fast
 		if (self.MACallBack != None) and (((pg.time.get_ticks() - self._lastTime)/1000) > 0.2):
 			self._lastTime = pg.time.get_ticks()
+            #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
 			att.rect.y = self.rect.y + (self.rect.height - att.rect.height)/2
 			if self._toRight:

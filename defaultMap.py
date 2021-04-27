@@ -137,6 +137,12 @@ class Map():
 
 	def checkMovingAttacks(self):
 		"""Check collisions of the moving attacks (e.g.: an arrow) of both players"""
+        #Keep track of the objects to remove. We must remove them from the attacks lists. We store their indexes here
+		toRm2 = []
+		toRm1 = []
+		i1 = 0
+		i2 = 0
+        #Check each list
 		if (self._j2 != None):
 			for a in self._pendingAttacks1:
 				#If you give a static attack into a moving one, the moving one gets destroyed.
@@ -147,6 +153,11 @@ class Map():
 				elif self._j1.rect.colliderect(a.rect):
 					self._j1.touched(a)
 					a.destruction()
+				if a.destructionFinished == True:
+					a.remove()
+					self._rtm.removeObject(a.RuntimeOUID)
+					toRm1.append(i1)
+				i1+=1
 		#Check for the other player
 		if (self._j1 != None):
 			for a in self._pendingAttacks2:
@@ -156,6 +167,25 @@ class Map():
 				elif self._j2.rect.colliderect(a.rect):
 					self._j2.touched(a)
 					a.destruction()
+				if a.destructionFinished == True:
+					a.remove()
+					self._rtm.removeObject(a.RuntimeOUID)
+					toRm2.append(i2)
+				i2+=1
+
+		#Then remove the ones that we no more need.
+		i = 0
+		j = 0
+		while i<len(toRm1):
+			self._pendingAttacks1.pop(toRm1[i+j])
+			j-=1
+			i+=1
+		i = 0
+		j = 0
+		while i<len(toRm2):
+			self._pendingAttacks2.pop(toRm2[i+j])
+			j-=1
+			i+=1
 
 	def checkStaticAttacks(self):
 		"""Check collisions of "Static" attack, such as a kick, for both players"""
@@ -181,20 +211,39 @@ class Map():
 
 	def checkOORAttacks(self):
 		"""Check for Out Of Range attacks, when it goes out of th window, and remove it"""
+        #Keep track of the objects to remove. We must remove them from the attacks lists. We store their indexes here
+		toRm2 = []
+		toRm1 = []
+		i1 = 0
+		i2 = 0
 		for a in self._pendingAttacks1:
-			if ((a.rect.x+a.rect.width)>(a.rect.width-10)) or (a.rect.x<10):
+			if ((a.rect.x+a.rect.width)<=10) or (a.rect.x>(self._win.get_width()-10)):
 				val = self._rtm.countObjects()
 				a.remove()
 				self._rtm.removeObject(a.RuntimeOUID)
-				if (val - self._rtm.countObjects()) != 0:
-					print(val - self._rtm.countObjects())
+				toRm1.append(i1)
+			i1+=1
 		for a in self._pendingAttacks2:
-			if ((a.rect.x+a.rect.width)>(a.rect.width-10)) or (a.rect.x<10):
+			if ((a.rect.x+a.rect.width)<10) or (a.rect.x>(self._win.get_width()-10)):
 				val = self._rtm.countObjects()
 				a.remove()
 				self._rtm.removeObject(a.RuntimeOUID)
-				if (val - self._rtm.countObjects()) != 0:
-					print(val - self._rtm.countObjects())
+				toRm2.append(i2)
+			i2+=1
+
+		#Then remove the ones that we no more need.
+		i = 0
+		j = 0
+		while i<len(toRm1):
+			self._pendingAttacks1.pop(toRm1[i+j])
+			j-=1
+			i+=1
+		i = 0
+		j = 0
+		while i<len(toRm2):
+			self._pendingAttacks2.pop(toRm2[i+j])
+			j-=1
+			i+=1
 
 	def postCheck(self):
 		"""To notify the other objects that have access to this instance that it closed the win."""
@@ -205,12 +254,10 @@ class Map():
 	def handleMA1(self, attack):
 		"""Callback to add a moving attack from P1"""
 		self._pendingAttacks2.append(self._rtm.appendObject(attack))
-		print("Added attack ", self._pendingAttacks2[-1].RuntimeOUID)
 
 	def handleMA2(self, attack):
 		"""Callback to add a moving attack from P2"""
 		self._pendingAttacks1.append(self._rtm.appendObject(attack))
-		print("Added attack ", self._pendingAttacks1[-1].RuntimeOUID)
 
 	def handleSA1(self, r):
 		"""Callback to add a satic attack from P1"""
