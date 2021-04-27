@@ -140,7 +140,7 @@ class Application:
 	_keys = keys.KeysSettings()
 	_maps = maps.MapChooser()
 	_infos = infos.InfosWindow()
-	
+
 	def __init__(self):
 		pygame.init()
 		pygame.display.set_caption("Pringle's Fight")
@@ -151,6 +151,7 @@ class Application:
         # Groupe de sprites utilisé pour l'affichage
 		self.groupeGlobal = pygame.sprite.Group()
 		self.statut = True
+		self._keys.quitCallBack = self.retour_au_menu
 
 	def _initialiser(self):
 		try:
@@ -160,11 +161,15 @@ class Application:
 		except AttributeError:
 			pass
 
+	def retour_au_menu(self):
+            self.menu()
+            self.revenir_menu()
+
 	def menu(self):
         # Affichage du menu
 		self._initialiser()
 		self.ecran = Menu()
-		self.ecran.quitCallBack = self.quitter
+		#self.ecran.quitCallBack = self.quitter
 		self.ecran.commandsCallBack = self._keys.popup
 		self.ecran.playCallBack = self._maps.popup
 		self.ecran.howToCallBack = self._infos.popup
@@ -197,14 +202,16 @@ class Application:
 		self.groupeGlobal.draw(self.fenetre)
 		pygame.display.update()
 
+	def revenir_menu(self):
+		clock = pygame.time.Clock()
+		app.statut = True
+		while app.statut:
+				app.update()
+				clock.tick(30)
 
 app = Application()
 app.menu()
 
-clock = pygame.time.Clock()
+app.revenir_menu()
 
-while app.statut:
-    app.update()
-    clock.tick(30)
-
-pygame.quit()
+#pygame.quit()
