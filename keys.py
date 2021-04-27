@@ -46,7 +46,7 @@ class KeyButton(runtime.Button):
             self.text = pg.key.name(self._lastKey)
         self.makePaintUpdate = True
         self._holds = False
-    
+
     def update(self, event):
         if super().update(event) == True:
             if event != None and event.type == pg.KEYDOWN and self.clicked:
@@ -59,6 +59,7 @@ class KeysSettings(runtime.Widget):
     _rtm = runtime.Runtime()
     _win = None
     closed = True
+    quitCallBack = None
 
     def __init__(self):
         runtime.Widget.__init__(self)
@@ -68,6 +69,8 @@ class KeysSettings(runtime.Widget):
         if self.closed == True and self._rtm.running == True:
             self.closed = True
             self._rtm.quit()
+            if self.quitCallBack != None:
+                self.quitCallBack()
 
     def popup(self):
         if self._rtm.running == False:
@@ -95,7 +98,7 @@ class KeysSettings(runtime.Widget):
         j2.font = pg.font.SysFont(None, 64)
         j1.rect.x = 20
         j2.rect.x = 320
-        
+
         list2[0].text = "Aller à gauche";
         list2[1].text = "Aller à droite";
         list2[2].text = "Sauter";
@@ -103,10 +106,10 @@ class KeysSettings(runtime.Widget):
         list2[4].text = "Attaque 1";
         list2[5].text = "Attaque 2";
         list2[6].text = "Attaque 3";
-        
+
         global switcher
         keys = list(switcher.values())
-        
+
         self._rtm.appendObject(j1)
         self._rtm.appendObject(j2)
         for i in range (0, 14):
