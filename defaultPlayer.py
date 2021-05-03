@@ -11,12 +11,13 @@ class Motion:
 	_timer = pg.time.get_ticks()
 	_enableRoll = True
 	_enableInvert = False
-	_xi = None
-	_yi = None
+	_enablePos = False
 	_src = None
 	_speed = None
+	_sourceY = 5
+	_firstFrame = True
 
-	def __init__(self, motionDir, source = None, xi = [], yi = [], speed = 0.05, invert = False):
+	def __init__(self, motionDir, source = None, xi = [], yi = 0, speed = 0.05, invert = False):
 		fList = os.listdir(motionDir)
 		frames = []
 		i = 0
@@ -43,6 +44,8 @@ class Motion:
 		if (source != None):
 			self._xi = xi
 			self._yi = yi
+			if yi != 0:
+				self._enablePos = True
 
 	def setRollEnabled(self, ena):
 		"""Disbale, or enable the "Roll". When the motion rich the limit of frames for the animation, if roll is set, it will go back to the first frame."""
@@ -55,10 +58,14 @@ class Motion:
 	def reset(self):
 		"""Rolls back the motion to the beginning, by restarting at the first frame. Notice that it is applied on render func, this will not automatically make the update on the surface."""
 		self._pos = 0
+		self._firstFrame = True
+		self._src.rect.y = self._sourceY + (self._pos * self._yi) + 25
 
 	def updatePos(self):
 		"""Used to update the frame to be used during the rendering"""
 		if ((pg.time.get_ticks() - self._timer)/1000) > self._speed:
+			if (self._firstFrame == True) and (self._src != None) and (self._enablePos):
+				self._sourceY = self._src.rect.y
 			if self._enableInvert:
 				self._pos += 1*self._pi
 				if (self._pos == len(self._frames)):
@@ -70,7 +77,10 @@ class Motion:
 				self._timer = pg.time.get_ticks()
 			else:
 				self._pos += 1
+				if (self._src != None):
+					self._src.rect.y = self._src.rect.y - self._yi
 				if (self._pos == len(self._frames)):
+					self._firstFrame = False
 					if self._enableRoll:
 						self._pos = 0
 					else:
@@ -81,7 +91,10 @@ class Motion:
 		"""Render to a pygame.Surface the current frame to make the 'motion'"""
 		self.updatePos()
 		if (target != None) and ((not self._frames) == False):
-			target.blit(self._frames[self._pos], rect)
+			if self._enablePos:
+				target.blit(self._frames[self._pos], pg.Rect((rect.x, self._sourceY - (self._pos * self._yi)), (rect.width, rect.height)))
+			else:
+				target.blit(self._frames[self._pos], rect)
 
 class Player(runtime.Widget):
 	_xi = 0
@@ -131,11 +144,12 @@ class Player(runtime.Widget):
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
-		self.leftMotion = Motion("./perso_2/right", self, speed = 0.1, invert = True)
-		self.rightMotion = Motion("./perso_2/right", self, speed = 0.1)
-		self.upMotion = Motion("./perso_2/fly", self)
-		self.downMotion = Motion("./perso_2/down", self)
-		self.SAMotion = Motion("./perso_2/attaque", self)
+		self.leftMotion = Motion("./players/perso_2/right", self, speed = 0.1, invert = True)
+		self.rightMotion = Motion("./players/perso_2/right", self, speed = 0.1)
+		self.upMotion = Motion("./players/perso_2/fly", self, speed = 0.2)
+		self.downMotion = Motion("./players/perso_2/down", self, yi=5)
+		self.SAMotion = Motion("./players/perso_2/attaque", self)
+		self.downMotion.setRollEnabled(False)
 
 	def moveUp(self):
 		"""Jump handler, move up"""
@@ -206,7 +220,7 @@ class Player(runtime.Widget):
 		"""Function that generates, and updates the static attack."""
 		if self.SACallBack != None:
 			#Don't let players attack too fast
-			if (self._usingSA == False) and (((pg.time.get_ticks() - self._lastTime)/1000) > 0.10):
+			if (self._usingSA == False) and (((pg.time.get_ticks() - self._saTime)/1000) > 0.10):
 				#self.SACallBack(att)
 				att = defaultAttack.Attack
 				att.degs = 20
@@ -227,7 +241,7 @@ class Player(runtime.Widget):
 			self._lastTime = pg.time.get_ticks()
             #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
-			att.image = pg.image.load("./perso_2/mvg.png")
+			att.image = pg.image.load("./players/perso_2/mvg.png")
 			att.rect.y = self.rect.y + (self.rect.height - att.rect.height)/2
 			if self._toRight:
 				att.rect.x = self.rect.x + self.rect.width
@@ -255,6 +269,8 @@ class Player(runtime.Widget):
 	def update(self, event):
 		if event == None or event.type == pg.KEYDOWN:
 			pressed_keys = pg.key.get_pressed()
+            #We store it to know if it was previously down, which means that the Y is under the window rect. So we then have to bring it back
+			wasDown = bool(self._old == "d")
 
 			#If no lock, no action needs to run again
 			if self._lockAcc == False:
@@ -289,6 +305,10 @@ class Player(runtime.Widget):
 			#We guess there's an update that must be done
 			self.makePaintUpdate = True
 			self.processAttackTimers()
+
+			#Bring the right Y if needed
+			if wasDown and (self._old != "d"):
+				self.downMotion.reset()
 			#We MUST share the events! Else the other player become buggy, it does not move as expected...
 			return True
 		self.processAttackTimers()

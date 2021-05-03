@@ -97,7 +97,7 @@ class TopBar(runtime.Widget):
 		self.makePaintUpdate = self.paintCheck()
 		return False
 
-class Map():
+class Map:
 	_showing = False
 	_rtm = runtime.Runtime()
 	_win = None
@@ -192,9 +192,11 @@ class Map():
 		if (self._inAttack1 != None) and (self._j2.rect.colliderect(self._inAttack1.rect)):
 			self._j2.touched(self._inAttack1)
 			self._j1.removeSA()
+			print("shot!")
 		if (self._inAttack2 != None) and (self._j1.rect.colliderect(self._inAttack2.rect)):
 			self._j1.touched(self._inAttack2)
 			self._j2removeSA()
+			print("shot!")
 
 	def checkPlayersPos(self):
 		"""Don't send the players out of the window! It checks and moves the players when needed to keep them in"""
@@ -262,6 +264,7 @@ class Map():
 	def handleSA1(self, r):
 		"""Callback to add a satic attack from P1"""
 		self._inAttack2 = r
+		print("Attacking P2!")
 
 	def handleSA2(self, r):
 		"""Callback to add a satic attack from P2"""
