@@ -16,9 +16,9 @@ switcher = {
 "p2_right": pg.K_d,
 "p2_up": pg.K_z,
 "p2_down": pg.K_s,
-"p2_at1": pg.K_TAB,
+"p2_at1": pg.K_e,
 "p2_at2": pg.K_a,
-"p2_at3": pg.K_e
+"p2_at3": pg.K_w
 }
 
 class KeyButton(runtime.Button):

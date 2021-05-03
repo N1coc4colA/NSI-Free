@@ -37,7 +37,6 @@ class ClickableItem(runtime.Widget):
     def setText(self, t):
         self.label.setText(t)
         self.makePaintUpdate = True
-        print("Vhanged for", self.label.text)
 
     def customPaint(self):
 		#In case the widget is moved

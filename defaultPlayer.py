@@ -16,7 +16,7 @@ class Motion:
 	_src = None
 	_speed = None
 
-	def __init__(self, motionDir, source = None, xi = [], yi = [], speed = 0.05):
+	def __init__(self, motionDir, source = None, xi = [], yi = [], speed = 0.05, invert = False):
 		fList = os.listdir(motionDir)
 		frames = []
 		i = 0
@@ -24,8 +24,19 @@ class Motion:
 		while i<len(fList):
 			filePath = os.path.splitext(fList[i])
 			#if filePath[1] == ".image":
-			frames.append(pg.image.load(fList[i]))
+			if (source != None):
+				frames.append(pg.transform.scale(pg.image.load(motionDir + "/" + fList[i]), (source.rect.width, source.rect.height)))
+			else:
+				frames.append(pg.image.load(motionDir + "/" + fList[i]))
 			i+=1
+		i = 0
+		framed = []
+		#Get .image files (in alphabetical order) to set them as frames
+		while (i<len(fList) and invert):
+			framed.append(pg.transform.flip(frames[i], True, False))
+			i+=1
+		if (invert):
+			frames = framed
 		self._frames = frames
 		self._speed = speed
 		self._src = source
@@ -47,7 +58,7 @@ class Motion:
 
 	def updatePos(self):
 		"""Used to update the frame to be used during the rendering"""
-		if (pg.time.get_ticks() - self._timer) > self._speed:
+		if ((pg.time.get_ticks() - self._timer)/1000) > self._speed:
 			if self._enableInvert:
 				self._pos += 1*self._pi
 				if (self._pos == len(self._frames)):
@@ -120,8 +131,11 @@ class Player(runtime.Widget):
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
-		self.leftMotion = Motion("C:\\Users\\clm_pedagogie.DDEC\\Downloads\\NSI-Free-main\\NSI-Free-main\\players\\Perso1\\ag")
-		self.rightMotion = Motion("C:\\Users\\clm_pedagogie.DDEC\\Downloads\\NSI-Free-main\\NSI-Free-main\\players\\Perso1\\ad")
+		self.leftMotion = Motion("./perso_2/right", self, speed = 0.1, invert = True)
+		self.rightMotion = Motion("./perso_2/right", self, speed = 0.1)
+		self.upMotion = Motion("./perso_2/fly", self)
+		self.downMotion = Motion("./perso_2/down", self)
+		self.SAMotion = Motion("./perso_2/attaque", self)
 
 	def moveUp(self):
 		"""Jump handler, move up"""
@@ -192,11 +206,15 @@ class Player(runtime.Widget):
 		"""Function that generates, and updates the static attack."""
 		if self.SACallBack != None:
 			#Don't let players attack too fast
-			if (self._usingSA == False) and ((pg.time.get_ticks() - self._lastTime) > 0.10):
+			if (self._usingSA == False) and (((pg.time.get_ticks() - self._lastTime)/1000) > 0.10):
 				#self.SACallBack(att)
+				att = defaultAttack.Attack
+				att.degs = 20
+				att.degs = self.rect
 				self._usingSA = True
 				self._saTime = pg.time.get_ticks()
 				self._lastTime = pg.time.get_ticks()
+				print("Attack!")
 			else:
 				self._usingSA = False
 				#Set to nothing to make it ignored, this will no more be an attack.
@@ -209,11 +227,13 @@ class Player(runtime.Widget):
 			self._lastTime = pg.time.get_ticks()
             #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
+			att.image = pg.image.load("./perso_2/mvg.png")
 			att.rect.y = self.rect.y + (self.rect.height - att.rect.height)/2
 			if self._toRight:
 				att.rect.x = self.rect.x + self.rect.width
 			else:
 				att.rect.x = self.rect.x - att.rect.width
+				att.image = pg.transform.flip(att.image, True, False)
 			self.MACallBack(att)
 
 	def processAttackTimers(self):
