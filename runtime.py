@@ -4,7 +4,7 @@ import pygame, sys
 import defaultAttack
 pygame.init()
 
-class Widget(pygame.sprite.Sprite):
+class Widget():
     def __init__(self):
        # Call the parent class (Sprite) constructor
        pygame.sprite.Sprite.__init__(self)
