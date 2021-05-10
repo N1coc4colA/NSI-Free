@@ -25,19 +25,17 @@ class Motion:
 		while i<len(fList):
 			filePath = os.path.splitext(fList[i])
 			#if filePath[1] == ".image":
-			print(filePath)
-			if (filePath[1]) != ".db":
-				if (source != None):
-				    frames.append(pg.transform.scale(pg.image.load(motionDir + "/" + fList[i]), (source.rect.width, source.rect.height)))
-				else:
-				    frames.append(pg.image.load(motionDir + "/" + fList[i]))
+			if (source != None):
+				frames.append(pg.transform.scale(pg.image.load(motionDir + "/" + fList[i]), (source.rect.width, source.rect.height)))
+			else:
+				frames.append(pg.image.load(motionDir + "/" + fList[i]))
 			i+=1
 		i = 0
 		framed = []
 		#Get .image files (in alphabetical order) to set them as frames
-		while (i<len(frames) and invert):
-				framed.append(pg.transform.flip(frames[i], True, False))
-				i+=1
+		while (i<len(fList) and invert):
+			framed.append(pg.transform.flip(frames[i], True, False))
+			i+=1
 		if (invert):
 			frames = framed
 		self._frames = frames

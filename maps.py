@@ -2,6 +2,7 @@
 import runtime
 import pygame as pg
 import clickableItem as cbi
+import os
 
 class MapChooser(runtime.Widget):
     """Lets the user choose the map he wants to play with. The replies with callback to load the map."""
@@ -10,6 +11,8 @@ class MapChooser(runtime.Widget):
     _win = None
     _callBack = None
     _fp = ""
+    _hasError = False
+    _button = None
     closed = True
 
     def __init__(self):
@@ -33,10 +36,16 @@ class MapChooser(runtime.Widget):
             self.loadElements()
             self._rtm.execute()
 
+    def setCallBack(self, func):
+        self._callBack = func
+
     def onItemClick(self, fp):
         """Click callback to update last map selected."""
         #Store the map
         self._fp = fp
+        if (self._fp != ""):
+            self._button.background =(100, 100, 255)
+            self._button.background_clicked = (175, 175, 255)
 
     def handleNext(self):
         """Call callback when a map have been chosen."""
@@ -44,8 +53,18 @@ class MapChooser(runtime.Widget):
             if self._fp != "":
                 self._callBack(self._fp)
 
+    def reset(self):
+        self._hasError = False
+        self._fp = ""
+
     def winPaint(self,  win):
         pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
+        if (self._hasError):
+            font = pygame.font.SysFont(None, 24)
+            color = (255, 0, 0)
+            image = font.render("Vous n'avez toujours pas choisi de map!", True, color)
+            text_width, text_height = font.size(self.text)
+            win.blit(image, (rect.x + ((rect.width-text_width)/2), rect.heiht - text_height - 5))
 
     def loadElements(self):
         """Loads UI elements"""
@@ -55,13 +74,15 @@ class MapChooser(runtime.Widget):
         j1.rect.x = 20
         self._rtm.appendObject(j1)
 
-        btn = runtime.Button()
-        btn.text = "Suivant >"
-        btn.font = pg.font.SysFont(None, 32)
-        btn.rect.x = 595
-        btn.rect.y = 5
-        btn.setCallBack(self.handleNext)
-        self._rtm.appendObject(btn)
+        self._button = runtime.Button()
+        self._button.text = "Suivant >"
+        self._button.font = pg.font.SysFont(None, 32)
+        self._button.rect.x = 595
+        self._button.rect.y = 5
+        self._button.setCallBack(self.handleNext)
+        self._button.background = (255, 100, 100)
+        self._button.background_clicked = (255, 180, 180)
+        self._rtm.appendObject(self._button)
 
         mapList = os.listdir("./maps")
         compatible = {}

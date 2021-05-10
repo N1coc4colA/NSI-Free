@@ -71,6 +71,9 @@ class ClickableItem(runtime.Widget):
         if self.label.window == None and self.window != None:
             self.label.window = self.window
 
+        if (event != None and event.type == pg.MOUSEBUTTONDOWN):
+            print("Down")
+
         if event != None and event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(pg.mouse.get_pos()):
                 self.clicked = True

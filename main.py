@@ -1,7 +1,7 @@
 #!/usr/bin/python3 -tt
 import pygame
 import keys, maps, infos
-
+import playerchooser
 surfaceW = 800 #Dimension de la fenêtre / Largeur
 surfaceH = 600 #Dimension de la fenêtre / Longueur
 
@@ -140,6 +140,7 @@ class Application:
 	_keys = keys.KeysSettings()
 	_maps = maps.MapChooser()
 	_infos = infos.InfosWindow()
+	_pC = playerchooser.PlayerChooser()
 	_mapPath = ""
 	_pp1 = ""
 	_pp2 = ""
@@ -182,10 +183,23 @@ class Application:
 		self._initialiser()
 		self.ecran = Menu()
 		#self.ecran.quitCallBack = self.quitter
+
+		self._maps.setCallBack(self.handlePlayerChooser)
+
 		self.ecran.commandsCallBack = self._keys.popup
 		self.ecran.playCallBack = self._maps.popup
 		self.ecran.howToCallBack = self._infos.popup
 		self.ecran.load(self.groupeGlobal)
+
+	def processMapLeave(self):
+		self._mapPath = ""
+		self._maps.reset()
+		self.retour_au_menu()
+
+	def handlePlayerChooser(self, fp):
+		"""n"""
+		self._mapPath = fp
+		self._pC.popup()
 
 	def jeu(self):
         # Affichage du jeu

@@ -103,19 +103,20 @@ class Button(Label):
             if self.rect.collidepoint(pygame.mouse.get_pos()):
                 self.clicked = True
                 self.makePaintUpdate = True
+                return False
             else:
                 if self.clicked:
                     self.clicked = False
                     self.makePaintUpdate = True
-                    return True
-            return False
+                return True
         elif event != None and event.type == pygame.MOUSEBUTTONUP:
             if self.clicked:
                 self.clicked = False
                 self.makePaintUpdate = True
                 if self._callBack != None:
                     self._callBack()
-            return False
+                return False
+            return True
         return True
 
 class Scene(Widget):
@@ -249,7 +250,7 @@ class Runtime:
                         run = True
                         propagate = False
                         i = 0
-                        #If an object accepts it, it means others must not get it: stop the loop
+                        #If an object accepts it, it means others must not get it: stop the loop, or if propagation is enabled, update other with empty things.
                         while run and i<len(self.objectList):
                             if self.objectList[i] != None:
                                 if propagate and self.afterPropagationUpdate:

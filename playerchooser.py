@@ -1,6 +1,7 @@
 ﻿import runtime
 import pygame as pg
 import clickableItem as cbi
+import os
 
 class PlayerChooser(runtime.Widget):
     """Window to let the users choose their player."""
@@ -8,8 +9,10 @@ class PlayerChooser(runtime.Widget):
     _rtm = runtime.Runtime()
     _win = None
     _callBack = None
-    _fp = ""
+    _fp1 = ""
+    _fp2 = ""
     closed = True
+    _hasError = False
 
     def __init__(self):
         runtime.Widget.__init__(self)
@@ -40,9 +43,14 @@ class PlayerChooser(runtime.Widget):
     def handleNext(self):
         """Calls callback when everyone chose their player."""
         if self._callBack != None:
-            self._callBack(self._fp)
+            if (self._fp2 != "" and self._fp1 != ""):
+                self._callBack(self._fp)
+            else:
+                self._hasError = True
+                self.makePaintUpdate = True
 
     def winPaint(self,  win):
+        """Paints the window"""
         pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
 
     def loadElements(self):
@@ -61,24 +69,24 @@ class PlayerChooser(runtime.Widget):
         btn.setCallBack(self.handleNext)
         self._rtm.appendObject(btn)
 
-        mapList = os.listdir("./maps")
+        mapList = os.listdir("./players/profiles")
         compatible = {}
         i = 0
 
         while i<len(mapList):
             filePath = os.path.splitext(mapList[i])
             if filePath[1] == ".image":
-                if os.path.exists("./maps/" + filePath[0] + ".field"):
+                if os.path.exists("./players/profiles/" + filePath[0] + ".field"):
                     try:
-                        f = open("./maps/" + filePath[0] + ".field", "r")
+                        f = open("./players/profiles/" + filePath[0] + ".field", "r")
                         data = str(f.read()).split("\n")
                         if len(data) >= 2:
-                            compatible["./maps/" + filePath[0] + ".image"] = data[0]
+                            compatible["./players/profiles/" + filePath[0] + ".image"] = data[0]
                         f.close()
                     except:
                         ""
                 else:
-                    print("./maps/" + filePath[0] + ".field", "has incoherent data when coupled with files")
+                    print("./players/profiles/" + filePath[0] + ".field", "has incoherent data when coupled with files")
             i+=1
         keys = list(compatible.keys())
         values = list(compatible.values())
