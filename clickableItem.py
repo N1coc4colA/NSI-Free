@@ -4,6 +4,7 @@ import pygame as pg
 import os
 
 class ClickableItem(runtime.Widget):
+    """ClickableItem is a widget close to Runtime.Button, it has text, an image, and can be clicked."""
     clicked = False
     highlighted = (100, 100, 100)
     background = (150, 150, 150)
@@ -21,24 +22,30 @@ class ClickableItem(runtime.Widget):
         self.label.color = (255, 255, 255)
 
     def setCallBack(self, func):
+        """Callback when clicked"""
         self._callBack = func
 
     def setImage(self, path):
+        """Image to show in the widget, loaded by path"""
         self._fp = path
         if self.window != None:
             self.scaled = pg.transform.scale(pg.image.load(path), (100, 100))
 
     def setX(self, v):
+        """To fix C copy behaviour struggling when accessing member objects"""
         self.rect = pg.Rect((v, self.rect.y), (120, 160))
 
     def setY(self, v):
+        """To fix C copy behaviour struggling when accessing member objects"""
         self.rect = pg.Rect((self.rect.x, v), (120, 160))
 
     def setText(self, t):
+        """Sets the text that will be displayed"""
         self.label.setText(t)
         self.makePaintUpdate = True
 
     def customPaint(self):
+        """Custom widget painting"""
 		#In case the widget is moved
         if self.label.rect.x != (self.rect.x + 10):
             self.label.rect.x = (self.rect.x + 10)
@@ -60,6 +67,7 @@ class ClickableItem(runtime.Widget):
         self.label.customPaint()
 
     def update(self, event):
+        """Event handler"""
         if self.label.window == None and self.window != None:
             self.label.window = self.window
 

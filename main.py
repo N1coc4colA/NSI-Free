@@ -140,6 +140,9 @@ class Application:
 	_keys = keys.KeysSettings()
 	_maps = maps.MapChooser()
 	_infos = infos.InfosWindow()
+	_mapPath = ""
+	_pp1 = ""
+	_pp2 = ""
 
 	def __init__(self):
 		pygame.init()
@@ -160,6 +163,15 @@ class Application:
 			self.groupeGlobal.empty()
 		except AttributeError:
 			pass
+
+	def setMapPath(self, fp):
+		self._mapPath = fp
+
+	def setPl1(self, fp):
+		self._pp1 = fp
+
+	def setPl2(self, fp):
+		self._pp2 = fp
 
 	def retour_au_menu(self):
             self.menu()

@@ -6,6 +6,7 @@ import defaultAttack
 import motion
 
 class Player(runtime.Widget):
+	"""Player base class, meant to be used in any player that have to be loaded."""
 	_xi = 0
 	_yi = 2
 	_lockAcc = False
@@ -176,6 +177,7 @@ class Player(runtime.Widget):
 			self.LPCallBack(self._lp)
 
 	def update(self, event):
+		"""Event handler"""
 		if event == None or event.type == pg.KEYDOWN:
 			pressed_keys = pg.key.get_pressed()
             #We store it to know if it was previously down, which means that the Y is under the window rect. So we then have to bring it back
@@ -225,6 +227,7 @@ class Player(runtime.Widget):
 		return True
 
 	def customPaint(self):
+		"""Painting handler"""
 		#We MUST not have 2+ motions painting in the same time! Do you imagine how much ugly it could be??
 
 		#If touched, it is more important than any other animations

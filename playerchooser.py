@@ -3,6 +3,7 @@ import pygame as pg
 import clickableItem as cbi
 
 class PlayerChooser(runtime.Widget):
+    """Window to let the users choose their player."""
     _showing = False
     _rtm = runtime.Runtime()
     _win = None
@@ -16,11 +17,13 @@ class PlayerChooser(runtime.Widget):
         self._rtm.addRoutine(self.postCheck)
 
     def postCheck(self):
+        """Runtime routine to know when window is left."""
         if self.closed == True and self._rtm.running == True:
             self.closed = True
             self._rtm.quit()
 
     def popup(self):
+        """Shows the win"""
         if self._rtm.running == False:
             self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
@@ -30,10 +33,12 @@ class PlayerChooser(runtime.Widget):
             self._rtm.execute()
 
     def onItemClick(self, fp):
+        """Callback to store the players chosen."""
         #Store the map
         self._fp = fp
 
     def handleNext(self):
+        """Calls callback when everyone chose their player."""
         if self._callBack != None:
             self._callBack(self._fp)
 
@@ -41,6 +46,7 @@ class PlayerChooser(runtime.Widget):
         pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
 
     def loadElements(self):
+        """Loads and displays UI elements."""
         j1 = runtime.Label()
         j1.text = "Choisissez la map!"
         j1.font = pg.font.SysFont(None, 64)

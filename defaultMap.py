@@ -15,6 +15,7 @@ class TopBar(runtime.Widget):
 		self.color = (255, 255, 255)
 		self.rect = pg.Rect((0, 0), (1200, 70))
 
+		#Decorative text as long as we don't use custom names (yet)
 		self._p1l.text = "J1"
 		self._p2l.text = "J2"
 
@@ -22,6 +23,7 @@ class TopBar(runtime.Widget):
 		self._p2l.font = self._p1l.font
 		self._p1l.rect.x = 10
 
+		#Make the progress bars for LPs
 		self._p1p = runtime.ProgressBar()
 		self._p1p.maximum = 100
 		self._p1p.pos = 100
@@ -98,6 +100,7 @@ class TopBar(runtime.Widget):
 		return False
 
 class Map:
+	"""Default map, used as base for any loaded map."""
 	_showing = False
 	_rtm = runtime.Runtime()
 	_win = None

@@ -4,6 +4,7 @@ import pygame as pg
 import clickableItem as cbi
 
 class MapChooser(runtime.Widget):
+    """Lets the user choose the map he wants to play with. The replies with callback to load the map."""
     _showing = False
     _rtm = runtime.Runtime()
     _win = None
@@ -17,11 +18,13 @@ class MapChooser(runtime.Widget):
         self._rtm.addRoutine(self.postCheck)
 
     def postCheck(self):
+        """Runtime routine to know when the win is closed."""
         if self.closed == True and self._rtm.running == True:
             self.closed = True
             self._rtm.quit()
 
     def popup(self):
+        """Shows the map chooser win"""
         if self._rtm.running == False:
             self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
@@ -31,17 +34,21 @@ class MapChooser(runtime.Widget):
             self._rtm.execute()
 
     def onItemClick(self, fp):
+        """Click callback to update last map selected."""
         #Store the map
         self._fp = fp
 
     def handleNext(self):
+        """Call callback when a map have been chosen."""
         if self._callBack != None:
-            self._callBack(self._fp)
+            if self._fp != "":
+                self._callBack(self._fp)
 
     def winPaint(self,  win):
         pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
 
     def loadElements(self):
+        """Loads UI elements"""
         j1 = runtime.Label()
         j1.text = "Choisissez la map!"
         j1.font = pg.font.SysFont(None, 64)

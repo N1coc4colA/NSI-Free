@@ -4,6 +4,7 @@ import os
 import defaultAttack
 
 class Motion:
+	"""Motion class is a way to animate over painting events and timers in a certain behaviour."""
 	_frames = None
 	_pos = -1
 	_pi = 1

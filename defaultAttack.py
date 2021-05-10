@@ -3,12 +3,14 @@ import pygame as pg
 import time
 
 class Attack():
+	"""Abstract clas for the attack sys and it's derivates."""
 	def __init__(self):
 		self.degs = 1
 		self.rect = pg.Rect((0, 0), (32, 32))
 		self.destructionFinished = False
 
 class MovingAttack(Attack):
+	"""MovingAttack is used for shurikens, fireballs, and such."""
 	image = None
 	destructionFrames = []
 	enablePosUpdateOnDraw = True
@@ -44,6 +46,7 @@ class MovingAttack(Attack):
 		self.window = target
 
 	def setOUID(self, v):
+		"""See Runtime module and it's Runtime class, needed behaviour for object tracking."""
 		self.RuntimeOUID = v
 
 	def posUpdate(self):

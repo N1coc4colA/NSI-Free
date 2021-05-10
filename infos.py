@@ -3,6 +3,7 @@ import runtime
 import pygame as pg
 
 class InfosWindow(runtime.Widget):
+	"""Displays information about the game"""
 	_showing = False
 	_rtm = runtime.Runtime()
 	_win = None
@@ -13,11 +14,13 @@ class InfosWindow(runtime.Widget):
 		self._rtm.addRoutine(self.postCheck)
 
 	def postCheck(self):
+		"""Runtime routine to tell when left"""
 		if self.closed == True and self._rtm.running == True:
 			self.closed = True
 			self._rtm.quit()
 
 	def popup(self):
+		"""Shows th" win"""
 		if self._rtm.running == False:
 			self._win = pg.display.set_mode((710, 310))
 			self._rtm.setWindow(self._win)
@@ -27,6 +30,7 @@ class InfosWindow(runtime.Widget):
 			self._rtm.execute()
 
 	def loadElements(self):
+		"""Loads UI elements"""
 		l1 = runtime.Label()
 		l1.text = "Comment jouer?"
 		l1.font = pg.font.SysFont(None, 64)

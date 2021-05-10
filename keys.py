@@ -22,6 +22,7 @@ switcher = {
 }
 
 class KeyButton(runtime.Button):
+    """Button that shows a key and change it when clicked."""
     keyID = -1
     _holds = False
     _lastKey = None
@@ -33,12 +34,13 @@ class KeyButton(runtime.Button):
         super().customPaint()
 
     def setKey(self, key_id):
+        """Updates the key and button text when clicking BTN & pressing a key."""
         self.makePaintUpdate = True
         self.text = pg.key.name(key_id)
         self.keyID = key_id
 
     def onClicked(self):
-        ""
+        """Click callback"""
         if self.keyID != -1 and self._lastKey != None:
             ""
             global switcher
@@ -48,6 +50,7 @@ class KeyButton(runtime.Button):
         self._holds = False
 
     def update(self, event):
+        """Event handler"""
         if super().update(event) == True:
             if event != None and event.type == pg.KEYDOWN and self.clicked:
                 self._lastKey = event.key
@@ -55,6 +58,7 @@ class KeyButton(runtime.Button):
         return True
 
 class KeysSettings(runtime.Widget):
+    """Displays and let the user choose which keys he wants to use while playing."""
     _showing = False
     _rtm = runtime.Runtime()
     _win = None
@@ -66,6 +70,7 @@ class KeysSettings(runtime.Widget):
         self._rtm.addRoutine(self.postCheck)
 
     def postCheck(self):
+        """Leave routine to handle callback"""
         if self.closed == True and self._rtm.running == True:
             self.closed = True
             self._rtm.quit()
@@ -73,6 +78,7 @@ class KeysSettings(runtime.Widget):
                 self.quitCallBack()
 
     def popup(self):
+        """Shows the window"""
         if self._rtm.running == False:
             self._win = pg.display.set_mode((600, 600))
             self._rtm.setWindow(self._win)
@@ -82,6 +88,7 @@ class KeysSettings(runtime.Widget):
             self._rtm.execute()
 
     def loadElements(self):
+        """Loads the UI elements and display 'em"""
         j1 = runtime.Label()
         j2 = runtime.Label()
 
