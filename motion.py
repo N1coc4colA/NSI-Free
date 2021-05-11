@@ -25,7 +25,8 @@ class Motion:
 		while i<len(fList):
 			filePath = os.path.splitext(fList[i])
 			#if filePath[1] == ".image":
-			if (source != None):
+			#Check that it is not Window's beautiful Thumbs.db!
+			if (source != None) and (filePath[1] != ".db":
 				frames.append(pg.transform.scale(pg.image.load(motionDir + "/" + fList[i]), (source.rect.width, source.rect.height)))
 			else:
 				frames.append(pg.image.load(motionDir + "/" + fList[i]))
@@ -33,7 +34,7 @@ class Motion:
 		i = 0
 		framed = []
 		#Get .image files (in alphabetical order) to set them as frames
-		while (i<len(fList) and invert):
+		while (i<len(frames) and invert):
 			framed.append(pg.transform.flip(frames[i], True, False))
 			i+=1
 		if (invert):
