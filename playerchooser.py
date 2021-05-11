@@ -27,6 +27,7 @@ class PlayerChooser(runtime.Widget):
 
     def popup(self):
         """Shows the win"""
+        print("Showing the choser.")
         if self._rtm.running == False:
             self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
@@ -99,7 +100,7 @@ class PlayerChooser(runtime.Widget):
         i = 0
         items = []
         while i<len(keys):
-            it = ClickableItem(values[i])
+            it = cbi.ClickableItem(values[i])
             it.setImage(keys[i])
             it.makePaintUpdate = True
             it.setCallBack(self.onItemClick)

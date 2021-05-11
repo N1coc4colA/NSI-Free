@@ -12,6 +12,8 @@ class Player(runtime.Widget):
 	_lockAcc = False
 	_lockFunc = None
 	_old = None
+    #At the beginnig, we use this before the first move
+	_firstPaint = True
 
 	#Player's keys to be used
 	leftKey = pg.K_LEFT
@@ -51,6 +53,9 @@ class Player(runtime.Widget):
 	#The LPs
 	_lp = 100
 	max_lp = 100
+
+	#Used for painting and such
+	isP1 = None
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
@@ -179,6 +184,15 @@ class Player(runtime.Widget):
 	def update(self, event):
 		"""Event handler"""
 		if event == None or event.type == pg.KEYDOWN:
+
+        #At the beginning, there's no move , so if it's P1 or P2, choose right or left motion.
+			if (self._firstPaint):
+				if (self._firstPaint and self.isP1):
+					self.moveRight()
+				else:
+					self.moveLeft()
+				self._firstPaint = False
+
 			pressed_keys = pg.key.get_pressed()
             #We store it to know if it was previously down, which means that the Y is under the window rect. So we then have to bring it back
 			wasDown = bool(self._old == "d")
@@ -220,9 +234,11 @@ class Player(runtime.Widget):
 			#Bring the right Y if needed
 			if wasDown and (self._old != "d"):
 				self.downMotion.reset()
+
 			#We MUST share the events! Else the other player become buggy, it does not move as expected...
 			return True
 		self.processAttackTimers()
+
 		#We MUST share the events! Else the other player become buggy...
 		return True
 
