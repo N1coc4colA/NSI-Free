@@ -258,11 +258,11 @@ class Map:
 
 	def handleMA1(self, attack):
 		"""Callback to add a moving attack from P1"""
-		self._pendingAttacks2.append(self._rtm.appendObject(attack))
+		self._pendingAttacks2.append(self._rtm.prependObject(attack))
 
 	def handleMA2(self, attack):
 		"""Callback to add a moving attack from P2"""
-		self._pendingAttacks1.append(self._rtm.appendObject(attack))
+		self._pendingAttacks1.append(self._rtm.prependObject(attack))
 
 	def handleSA1(self, r):
 		"""Callback to add a satic attack from P1"""

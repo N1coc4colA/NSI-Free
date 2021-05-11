@@ -171,6 +171,13 @@ class Runtime:
         self.objectList.append(obj)
         return obj
 
+    def prependObject(self, obj):
+        obj.setWindow(self.target_win)
+        obj.setOUID(self._ouid)
+        self._ouid += 1
+        self.objectList.insert(0, obj)
+        return obj
+
     def removeObject(self, ouid):
         if ouid != -1:
             i = 0
@@ -214,6 +221,10 @@ class Runtime:
 
     def setEndCallBack(self, func):
         self._leaveCallBack = func
+
+    def clear(self):
+        self.objectList.clear()
+        self._ouid = 0
 
     def execute(self):
         # Main Loop

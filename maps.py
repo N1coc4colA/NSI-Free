@@ -13,6 +13,7 @@ class MapChooser(runtime.Widget):
     _fp = ""
     _hasError = False
     _button = None
+    _label = None
     closed = True
 
     def __init__(self):
@@ -46,6 +47,10 @@ class MapChooser(runtime.Widget):
         if (self._fp != ""):
             self._button.background =(100, 100, 255)
             self._button.background_clicked = (175, 175, 255)
+
+            #Show the chosen map
+            f = open(os.path.splitext(fp)[0] + ".field", "r")
+            self._label.text = "Map choisie: " + str(f.read()).split("\n")[0]
 
     def handleNext(self):
         """Call callback when a map have been chosen."""
@@ -83,14 +88,14 @@ class MapChooser(runtime.Widget):
         self._button.background = (255, 100, 100)
         self._button.background_clicked = (255, 180, 180)
         self._rtm.appendObject(self._button)
-        
-        self.label = runtime.Label()
-        self.label.text = "La map choisie est "
-        self.label.rect.x = 300
-        self.label.rect.y = 770
-        self.label.color = (0, 0, 0)
-        self.label.font = pg.font.SysFont(None, 30)
-        self._rtm.appendObject(self.label)
+
+        self._label = runtime.Label()
+        self._label.text = "Choisissez une map"
+        self._label.font = pg.font.SysFont(None, 40)
+        self._label.color = (100, 100, 255)
+        self._label.rect.x = 5
+        self._label.rect.y = self._win.get_rect().height - self._label.rect.height
+        self._rtm.appendObject(self._label)
 
         mapList = os.listdir("./maps")
         compatible = {}

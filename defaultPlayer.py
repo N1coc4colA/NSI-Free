@@ -56,6 +56,7 @@ class Player(runtime.Widget):
 
 	#Used for painting and such
 	isP1 = None
+	_goingDown = False
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
@@ -152,7 +153,7 @@ class Player(runtime.Widget):
 	def generateMA(self):
 		"""Function that generates a moving attack (e.g. an arrow)."""
 		#Use the timer to don't make too much attacks too fast
-		if (self.MACallBack != None) and (((pg.time.get_ticks() - self._lastTime)/1000) > 0.2):
+		if (self.MACallBack != None) and (((pg.time.get_ticks() - self._lastTime)/1000) > 0.2) and (self._goingDown == False):
 			self._lastTime = pg.time.get_ticks()
             #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
@@ -197,6 +198,12 @@ class Player(runtime.Widget):
             #We store it to know if it was previously down, which means that the Y is under the window rect. So we then have to bring it back
 			wasDown = bool(self._old == "d")
 
+			#Process keys to attack BEFORE the moves ones. Else there's a litigation about which animation have to run.
+			if pressed_keys[self.saKey]:
+				self.generateSA()
+			elif pressed_keys[self.maKey]:
+				self.generateMA()
+
 			#If no lock, no action needs to run again
 			if self._lockAcc == False:
 				#Process the moves
@@ -217,12 +224,6 @@ class Player(runtime.Widget):
 					#if it doesn't exists, it means that it was just to block other moves func, so remove the lock.
 					self._lockAcc = False
 
-			#Process keys to attack
-			if pressed_keys[self.saKey]:
-				self.generateSA()
-			elif pressed_keys[self.maKey]:
-				self.generateMA()
-
 			#For functions that requires timer, such as move left or right to don't let the players go too fast
 			if self.updateTimer:
 				self.sourceTicks = pg.time.get_ticks()
@@ -234,6 +235,7 @@ class Player(runtime.Widget):
 			#Bring the right Y if needed
 			if wasDown and (self._old != "d"):
 				self.downMotion.reset()
+				self._goingDown = False
 
 			#We MUST share the events! Else the other player become buggy, it does not move as expected...
 			return True
