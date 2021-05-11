@@ -83,6 +83,14 @@ class MapChooser(runtime.Widget):
         self._button.background = (255, 100, 100)
         self._button.background_clicked = (255, 180, 180)
         self._rtm.appendObject(self._button)
+        
+        self.label = runtime.Label()
+        self.label.text = "La map choisie est "
+        self.label.rect.x = 300
+        self.label.rect.y = 770
+        self.label.color = (0, 0, 0)
+        self.label.font = pg.font.SysFont(None, 30)
+        self._rtm.appendObject(self.label)
 
         mapList = os.listdir("./maps")
         compatible = {}
