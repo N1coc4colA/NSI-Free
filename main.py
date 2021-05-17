@@ -213,6 +213,7 @@ class Application:
 
 	def quitter(self):
 		self.statut = False
+		pygame.quit()
 
 	def update(self):
 		events = pygame.event.get()
