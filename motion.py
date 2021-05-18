@@ -84,7 +84,7 @@ class Motion:
 			else:
 				self._pos += 1
 				if (self._src != None):
-					self._src.rect.y = self._src.rect.y - self._yi
+					self._src.rect.y = self._src.rect.y + self._yi
 				if (self._pos == len(self._frames)):
 					self._firstFrame = False
 					if self._enableRoll:
