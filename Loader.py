@@ -13,5 +13,5 @@ def loadMap(mapDir, p1, p2):
     if p1 != "" and map != None:
         map.setJ1(SourceFileLoader("pringles.Player1", p1).load_module().Player())
     if p2 != "" and map != None:
-        map.setJ1(SourceFileLoader("pringles.Player2", p2).load_module().Player())
+        map.setJ2(SourceFileLoader("pringles.Player2", p2).load_module().Player())
     return map
