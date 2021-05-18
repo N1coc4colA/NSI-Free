@@ -62,9 +62,9 @@ class Player(runtime.Widget):
 		runtime.Widget.__init__(self)
 		self.leftMotion = motion.Motion("./players/perso_2/right", self, speed = 0.1, invert = True)
 		self.rightMotion = motion.Motion("./players/perso_2/right", self, speed = 0.1)
-		self.upMotion = motion.Motion("./players/perso_2/fly", self, speed = 0.2)
+		self.upMotion = motion.Motion("./players/perso_2/fly", self, speed = 0.4)
 		self.downMotion = motion.Motion("./players/perso_2/down", self, yi=5)
-		self.SAMotion = motion.Motion("./players/perso_2/attaque", self)
+		self.SAMotion = motion.Motion("./players/perso_2/attaque", self, speed = 0.2)
 		self.downMotion.setRollEnabled(False)
 
 	def moveUp(self):
@@ -134,26 +134,30 @@ class Player(runtime.Widget):
 
 	def generateSA(self):
 		"""Function that generates, and updates the static attack."""
-		if self.SACallBack != None:
-			#Don't let players attack too fast
-			if (self._usingSA == False) and (((pg.time.get_ticks() - self._saTime)/1000) > 0.10):
-				#self.SACallBack(att)
-				att = defaultAttack.Attack
-				att.degs = 20
-				att.degs = self.rect
-				self._usingSA = True
-				self._saTime = pg.time.get_ticks()
-				self._lastTime = pg.time.get_ticks()
-				print("Attack!")
-			else:
-				self._usingSA = False
-				#Set to nothing to make it ignored, this will no more be an attack.
-				self.SACallBack(None)
+		if self._lockAcc == False:
+			self._lockAcc = True
+			if self.SACallBack != None:
+				#Don't let players attack too fast
+				if (self._usingSA == False) and (((pg.time.get_ticks() - self._saTime)/1000) > 0.4):
+					#self.SACallBack(att)
+					att = defaultAttack.Attack
+					att.degs = 20
+					att.rect = self.rect
+					self._saTime = pg.time.get_ticks()
+					self._lastTime = pg.time.get_ticks()
+					print("Attack!")
+				else:
+					self._usingSA = False
+					#Set to nothing to make it ignored, this will no more be an attack.
+					self.SACallBack(None)
+			self._old = "s"
+		elif self._old == "s":
+			self._lockAcc = False
 
 	def generateMA(self):
 		"""Function that generates a moving attack (e.g. an arrow)."""
 		#Use the timer to don't make too much attacks too fast
-		if (self.MACallBack != None) and (((pg.time.get_ticks() - self._lastTime)/1000) > 0.2) and (self._goingDown == False):
+		if (self.MACallBack != None) and (((pg.time.get_ticks() - self._lastTime)/1000) > 2) and (self._goingDown == False):
 			self._lastTime = pg.time.get_ticks()
             #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
