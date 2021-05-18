@@ -22,6 +22,7 @@ class InfosWindow(runtime.Widget):
 	def popup(self):
 		"""Shows th" win"""
 		if self._rtm.running == False:
+			self._rtm.clear()
 			self._win = pg.display.set_mode((710, 310))
 			self._rtm.setWindow(self._win)
 			self._rtm.addRoutine(self.postCheck)

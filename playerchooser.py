@@ -38,7 +38,6 @@ class PlayerChooser(runtime.Widget):
         """Shows the win"""
         if self._rtm.running == False:
             self._rtm.clear()
-            self._rtm.clear()
             self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)

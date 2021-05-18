@@ -80,6 +80,7 @@ class KeysSettings(runtime.Widget):
     def popup(self):
         """Shows the window"""
         if self._rtm.running == False:
+            self._rtm.clear()
             self._win = pg.display.set_mode((600, 600))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)
