@@ -16,6 +16,7 @@ class Motion:
 	_speed = None
 	_sourceY = 5
 	_firstFrame = True
+	_isAtEnd = False
 
 	def __init__(self, motionDir, source = None, xi = [], yi = 0, speed = 0.05, invert = False):
 		fList = os.listdir(motionDir)
@@ -62,6 +63,10 @@ class Motion:
 		self._firstFrame = True
 		self._src.rect.y = self._sourceY + (self._pos * self._yi) + 25
 
+	def animEnded(self):
+		"""Used to know if the animation ended, it can be useful for the movements handling."""
+		return self._isAtEnd
+
 	def updatePos(self):
 		"""Used to update the frame to be used during the rendering"""
 		if ((pg.time.get_ticks() - self._timer)/1000) > self._speed:
@@ -87,6 +92,10 @@ class Motion:
 					else:
 						self._pos -= 1
 				self._timer = pg.time.get_ticks()
+		if (not self._frames) or self._pos == (len(self._frames)-1) or (self._enableInvert == True and self._pos == 0):
+			self._isAtEnd = True
+		else:
+			self._isAtEnd = False
 
 	def render(self, target, rect):
 		"""Render to a pygame.Surface the current frame to make the 'motion'"""

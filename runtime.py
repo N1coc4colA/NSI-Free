@@ -255,8 +255,11 @@ class Runtime:
                 #Share the events
                 for event in eventList:
                     if event.type == pygame.QUIT:
-                        pygame.quit()
-                        quit(1)
+                        if self._leaveCallBack == None:
+                            pygame.quit()
+                            quit(1)
+                        else:
+                            self._leaveCallBack()
                     else:
                         run = True
                         propagate = False

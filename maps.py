@@ -30,6 +30,7 @@ class MapChooser(runtime.Widget):
     def popup(self):
         """Shows the map chooser win"""
         if self._rtm.running == False:
+            self._rtm.clear()
             self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)
@@ -50,6 +51,7 @@ class MapChooser(runtime.Widget):
 
             #Show the chosen map
             f = open(os.path.splitext(fp)[0] + ".field", "r")
+            self._fp = os.path.splitext(fp)[0] + ".py"
             self._label.text = "Map choisie: " + str(f.read()).split("\n")[0]
 
     def handleNext(self):
@@ -79,6 +81,7 @@ class MapChooser(runtime.Widget):
         j1.rect.x = 20
         self._rtm.appendObject(j1)
 
+        #Put the button
         self._button = runtime.Button()
         self._button.text = "Suivant >"
         self._button.font = pg.font.SysFont(None, 32)
@@ -89,6 +92,7 @@ class MapChooser(runtime.Widget):
         self._button.background_clicked = (255, 180, 180)
         self._rtm.appendObject(self._button)
 
+        #Put the title
         self._label = runtime.Label()
         self._label.text = "Choisissez une map"
         self._label.font = pg.font.SysFont(None, 40)
@@ -101,6 +105,7 @@ class MapChooser(runtime.Widget):
         compatible = {}
         i = 0
 
+        #Load data from dir
         while i<len(mapList):
             filePath = os.path.splitext(mapList[i])
             if filePath[1] == ".image":
@@ -119,6 +124,7 @@ class MapChooser(runtime.Widget):
         keys = list(compatible.keys())
         values = list(compatible.values())
 
+        #Generate buttons from loaded data
         left = 20
         top = 60
         spacing = 5

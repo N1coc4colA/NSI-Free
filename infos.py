@@ -39,6 +39,7 @@ class InfosWindow(runtime.Widget):
 		l1.rect.y = 5
 		self._rtm.appendObject(l1)
 
+        #Create the label for each line
 		l2 = runtime.Label()
 		l3 = runtime.Label()
 		l4 = runtime.Label()

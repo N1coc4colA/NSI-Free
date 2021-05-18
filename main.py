@@ -2,6 +2,8 @@
 import pygame
 import keys, maps, infos
 import playerchooser
+import Loader
+
 surfaceW = 800 #Dimension de la fenêtre / Largeur
 surfaceH = 600 #Dimension de la fenêtre / Longueur
 
@@ -132,7 +134,7 @@ class Jeu :
                 self.creerTexte()
                 break
 
-    def detruire(self) :
+    def detruire(self):
         pygame.time.set_timer(self._CLIGNOTER, 0) # désactivation du timer
 
 class Application:
@@ -149,6 +151,8 @@ class Application:
 		pygame.init()
 		pygame.display.set_caption("Pringle's Fight")
 
+		self._pC.setEndCallBack(self.retour_au_menu)
+
 		self.fond = (150,)*3
 
 		self.fenetre = pygame.display.set_mode((surfaceW,surfaceH))
@@ -156,6 +160,7 @@ class Application:
 		self.groupeGlobal = pygame.sprite.Group()
 		self.statut = True
 		self._keys.quitCallBack = self.retour_au_menu
+		self._pC.setCallBack(self.handleMapLaunch)
 
 	def _initialiser(self):
 		try:
@@ -168,12 +173,6 @@ class Application:
 	def setMapPath(self, fp):
 		self._mapPath = fp
 
-	def setPl1(self, fp):
-		self._pp1 = fp
-
-	def setPl2(self, fp):
-		self._pp2 = fp
-
 	def retour_au_menu(self):
             self.menu()
             self.revenir_menu()
@@ -182,7 +181,7 @@ class Application:
         # Affichage du menu
 		self._initialiser()
 		self.ecran = Menu()
-		#self.ecran.quitCallBack = self.quitter
+		self.ecran.quitCallBack = self.quitter
 
 		self._maps.setCallBack(self.handlePlayerChooser)
 
@@ -200,6 +199,11 @@ class Application:
 		"""n"""
 		self._mapPath = fp
 		self._pC.popup()
+
+	def handleMapLaunch(self, fp1, fp2):
+		self._pp1 = fp1
+		self._pp2 = fp2
+		Loader.loadMap(self._mapPath, self._pp1, self._pp2).popup()
 
 	def jeu(self):
         # Affichage du jeu

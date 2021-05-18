@@ -99,6 +99,7 @@ class KeysSettings(runtime.Widget):
         for i in range(0, 7):
             list2.append(runtime.Label())
 
+        #Put the titles
         j1.text = "Joueur 1"
         j2.text = "Joueur 2"
         j1.font = pg.font.SysFont(None, 64)
@@ -106,6 +107,7 @@ class KeysSettings(runtime.Widget):
         j1.rect.x = 20
         j2.rect.x = 320
 
+        #The sublabels
         list2[0].text = "Aller à gauche";
         list2[1].text = "Aller à droite";
         list2[2].text = "Sauter";
@@ -119,6 +121,8 @@ class KeysSettings(runtime.Widget):
 
         self._rtm.appendObject(j1)
         self._rtm.appendObject(j2)
+
+        #Add the buttons and the labels to know the used keys
         for i in range (0, 14):
             list1[i].rect.height = 40
             list1[i].setKey(keys[i])

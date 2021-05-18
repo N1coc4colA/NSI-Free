@@ -15,6 +15,8 @@ class PlayerChooser(runtime.Widget):
     _hasError = False
     _label1 = None
     _label2 = None
+    _button = None
+    _endedCb = None
 
     def __init__(self):
         runtime.Widget.__init__(self)
@@ -26,10 +28,16 @@ class PlayerChooser(runtime.Widget):
         if self.closed == True and self._rtm.running == True:
             self.closed = True
             self._rtm.quit()
+            if (self._endedCb != None):
+                self._endedCb()
+
+    def setEndCallBack(self, func):
+        self._endedCb = func
 
     def popup(self):
         """Shows the win"""
         if self._rtm.running == False:
+            self._rtm.clear()
             self._rtm.clear()
             self._win = pg.display.set_mode((800, 800))
             self._rtm.setWindow(self._win)
@@ -38,27 +46,38 @@ class PlayerChooser(runtime.Widget):
             self.loadElements()
             self._rtm.execute()
 
+    def setCallBack(self, func):
+        self._callBack = func
+
     def onItemClick1(self, fp):
         """Callback to store the players chosen."""
-        #Store the map
-        self._fp1 = fp
         #Show the chosen map
         f = open(os.path.splitext(fp)[0] + ".field", "r")
-        self._label1.text = "Joueur 1: " + str(f.read()).split("\n")[0]
+        splitted = str(f.read()).split("\n")
+        self._label1.text = "Joueur 1: " + splitted[0]
+        #Store the map
+        self._fp1 = "./players/" + splitted[1] + "/" + splitted[1] + ".py"
+        #Change button's color to say that user can click on it
+        if self._fp2 != "" and self._fp1 != "":
+            self._button.background = (100, 100, 255)
+            self._button.background_clicked = (175, 175, 255)
 
     def onItemClick2(self, fp):
         """Callback to store the players chosen."""
         #Store the map
-        self._fp2 = fp
+        self._fp2 = "./players/" + os.path.splitext(fp)[0].split("/")[0] + "/" + os.path.splitext(fp)[0].split("/")[0] + ".py"
         #Show the chosen map
         f = open(os.path.splitext(fp)[0] + ".field", "r")
         self._label2.text = "Joueur 2: " + str(f.read()).split("\n")[0]
+        if self._fp2 != "" and self._fp1 != "":
+            self._button.background = (100, 100, 255)
+            self._button.background_clicked = (175, 175, 255)
 
     def handleNext(self):
         """Calls callback when everyone chose their player."""
         if self._callBack != None:
             if (self._fp2 != "" and self._fp1 != ""):
-                self._callBack(self._fp)
+                self._callBack(self._fp1, self._fp2)
             else:
                 self._hasError = True
                 self.makePaintUpdate = True
@@ -66,6 +85,28 @@ class PlayerChooser(runtime.Widget):
     def winPaint(self,  win):
         """Paints the window"""
         pg.draw.rect(win, (200, 200, 200),(0, 0, win.get_rect().width, win.get_rect().height))
+
+    def generateClickablesFrom(self, dicted, cb, left = 20):
+        keys = list(dicted.keys())
+        values = list(dicted.values())
+        top = 60
+        spacing = 5
+        row = 0
+        column = 0
+        i = 0
+        while i<len(keys):
+            it = cbi.ClickableItem(values[i])
+            it.setImage(keys[i])
+            it.makePaintUpdate = True
+            it.setCallBack(cb)
+            it.setX(column*150 + spacing*column + left)
+            it.setY(row*170 + spacing*row + top)
+            column += 1
+            if column == 2:
+                column = 0
+                row += 1
+            self._rtm.appendObject(it)
+            i+=1
 
     def loadElements(self):
         """Loads and displays UI elements."""
@@ -75,13 +116,16 @@ class PlayerChooser(runtime.Widget):
         j1.rect.x = 20
         self._rtm.appendObject(j1)
 
-        btn = runtime.Button()
-        btn.text = "Suivant >"
-        btn.font = pg.font.SysFont(None, 32)
-        btn.rect.x = 595
-        btn.rect.y = 5
-        btn.setCallBack(self.handleNext)
-        self._rtm.appendObject(btn)
+        #Put the button
+        self._button = runtime.Button()
+        self._button.text = "Suivant >"
+        self._button.font = pg.font.SysFont(None, 32)
+        self._button.rect.x = 595
+        self._button.rect.y = 5
+        self._button.setCallBack(self.handleNext)
+        self._button.background = (255, 100, 100)
+        self._button.background_clicked = (255, 180, 180)
+        self._rtm.appendObject(self._button)
 
         mapList = os.listdir("./players/profiles")
         compatible = {}
@@ -102,48 +146,14 @@ class PlayerChooser(runtime.Widget):
                 else:
                     print("./players/profiles/" + filePath[0] + ".field", "has incoherent data when coupled with files")
             i+=1
-        keys = list(compatible.keys())
-        values = list(compatible.values())
 
-        left = 20
-        top = 60
-        spacing = 5
-        row = 0
-        column = 0
-        i = 0
-        while i<len(keys):
-            it = cbi.ClickableItem(values[i])
-            it.setImage(keys[i])
-            it.makePaintUpdate = True
-            it.setCallBack(self.onItemClick)
-            it.setX(column*150 + spacing*column + left)
-            it.setY(row*170 + spacing*row + top)
-            column += 1
-            if column == 2:
-                column = 0
-                row += 1
-            items.append(it)
-            self._rtm.appendObject(it)
-            i+=1
+        #Load the clickables
+        self.generateClickablesFrom(compatible, self.onItemClick1)
+        self.generateClickablesFrom(compatible, self.onItemClick2, 400)
 
-        left = 400
-        while i<len(keys):
-            it = cbi.ClickableItem(values[i])
-            it.setImage(keys[i])
-            it.makePaintUpdate = True
-            it.setCallBack(self.onItemClick)
-            it.setX(column*150 + spacing*column + left)
-            it.setY(row*170 + spacing*row + top)
-            column += 1
-            if column == 2:
-                column = 0
-                row += 1
-            items.append(it)
-            self._rtm.appendObject(it)
-            i+=1
-
+        #Show the labels to let users know which player have been chosen
         self._label1 = runtime.Label()
-        self._label1.text = "Choisissez une map"
+        self._label1.text = "Choisissez le J1"
         self._label1.font = pg.font.SysFont(None, 40)
         self._label1.color = (100, 100, 255)
         self._label1.rect.x = 5
@@ -151,9 +161,9 @@ class PlayerChooser(runtime.Widget):
         self._rtm.appendObject(self._label1)
 
         self._label2 = runtime.Label()
-        self._label2.text = "Choisissez une map"
+        self._label2.text = "Choisissez une J2"
         self._label2.font = pg.font.SysFont(None, 40)
         self._label2.color = (100, 100, 255)
-        self._label2.rect.x = 5
+        self._label2.rect.x = 400
         self._label2.rect.y = self._win.get_rect().height - self._label2.rect.height
         self._rtm.appendObject(self._label2)

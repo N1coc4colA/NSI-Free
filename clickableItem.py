@@ -70,7 +70,7 @@ class ClickableItem(runtime.Widget):
         """Event handler"""
         if self.label.window == None and self.window != None:
             self.label.window = self.window
-
+        #Share from child to parent and move children if needed
         if event != None and event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(pg.mouse.get_pos()):
                 self.clicked = True
