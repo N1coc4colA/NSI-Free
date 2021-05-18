@@ -64,11 +64,13 @@ class PlayerChooser(runtime.Widget):
 
     def onItemClick2(self, fp):
         """Callback to store the players chosen."""
-        #Store the map
-        self._fp2 = "./players/" + os.path.splitext(fp)[0].split("/")[0] + "/" + os.path.splitext(fp)[0].split("/")[0] + ".py"
         #Show the chosen map
         f = open(os.path.splitext(fp)[0] + ".field", "r")
-        self._label2.text = "Joueur 2: " + str(f.read()).split("\n")[0]
+        splitted = str(f.read()).split("\n")
+        self._label2.text = "Joueur 2: " + splitted[0]
+        #Store the map
+        self._fp2 = "./players/" + splitted[1] + "/" + splitted[1] + ".py"
+        #Change button's color to say that user can click on it
         if self._fp2 != "" and self._fp1 != "":
             self._button.background = (100, 100, 255)
             self._button.background_clicked = (175, 175, 255)
