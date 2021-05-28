@@ -71,12 +71,6 @@ class Player(runtime.Widget):
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
-		self.leftMotion = motion.Motion("./players/perso_2/right", self, speed = 0.1, invert = True)
-		self.rightMotion = motion.Motion("./players/perso_2/right", self, speed = 0.1)
-		self.upMotion = motion.Motion("./players/perso_2/fly", self, speed = 0.4)
-		self.downMotion = motion.Motion("./players/perso_2/down", self, yi=5)
-		self.SAMotion = motion.Motion("./players/perso_2/attaque", self, speed = 0.2)
-		self.downMotion.setRollEnabled(False)
 
 	def moveUp(self):
 		"""Jump handler, move up"""
@@ -106,6 +100,7 @@ class Player(runtime.Widget):
 					self._lockAcc = False
 					self._lockFunc = None
 				#Put it in the old direction
+				print("Reach")
 				if self._toRight:
 					self.moveRight()
 				else:
@@ -190,7 +185,7 @@ class Player(runtime.Widget):
             #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
 			if self.ma_p1 != None:
-				att.image = pg.image.load(self.ma_)
+				att.image = pg.image.load(self.ma_p1)
 			if self.ma_p2 != None:
 				att.setFrameDir(self.ma_p2)
 			att.rect.y = self.rect.y + (self.rect.height - att.rect.height)/2
@@ -220,6 +215,14 @@ class Player(runtime.Widget):
 	def update(self, event):
 		"""Event handler"""
 		if event == None or event.type == pg.KEYDOWN:
+
+			if self._old == "s" and self.SAMotion != None and self.SAMotion.animEnded() == True:
+				self._lockFunc = None
+				self._lockAcc = False
+				if self._toRight:
+					self.moveRight()
+				else:
+					self.moveLeft()
 
         #At the beginning, there's no move , so if it's P1 or P2, choose right or left motion.
 			if (self._firstPaint):

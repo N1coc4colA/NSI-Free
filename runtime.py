@@ -238,6 +238,7 @@ class Runtime:
     def clear(self):
         self.objectList.clear()
         self._ouid = 0
+        self._firstLoad = True
 
     def execute(self):
         # Main Loop

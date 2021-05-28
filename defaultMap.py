@@ -211,7 +211,7 @@ class Map:
 			self._j1.removeSA()
 		if (self._inAttack2 != None) and (self._j1.rect.colliderect(self._inAttack2.rect)):
 			self._j1.touched(self._inAttack2)
-			self._j2removeSA()
+			self._j2.removeSA()
 
 	def checkPlayersPos(self):
 		"""Don't send the players out of the window! It checks and moves the players when needed to keep them in"""
