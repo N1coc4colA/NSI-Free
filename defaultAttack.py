@@ -14,8 +14,9 @@ class MovingAttack(Attack):
 	image = None
 	destructionFrames = []
 	enablePosUpdateOnDraw = True
+	_to_the_right = False
 
-	def __init__(self, toRight, speed = 0.005, indice = 3):
+	def __init__(self, toRight = False, speed = 0.005, indice = 3):
 		Attack.__init__(self)
 		self.window = None
 		self.color = (0, 0, 0)
@@ -25,12 +26,38 @@ class MovingAttack(Attack):
 		else:
 			self._indice = -indice
 
+		self._to_the_right = toRight
+
 		self.RuntimeOUID = -1
 		self.makePaintUpdate = False
 		self._shouldDest = False
 		self._currDest = 0
 		self._speed = speed
 		self._oldTime = pg.time.get_ticks()
+
+	def setFramesDir(self, d):
+		fList = os.listdir(d)
+		frames = []
+		i = 0
+		#Get .image files (in alphabetical order) to set them as frames
+		while i<len(fList):
+			filePath = os.path.splitext(fList[i])
+			#if filePath[1] == ".image":
+			#Check that it is not Window's beautiful Thumbs.db!
+			if (source != None) and (filePath[1] != ".db"):
+				frames.append(pg.transform.scale(pg.image.load(motionDir + "/" + fList[i]), (source.rect.width, source.rect.height)))
+			else:
+				frames.append(pg.image.load(motionDir + "/" + fList[i]))
+			i+=1
+		i = 0
+		framed = []
+		#Get .image files (in alphabetical order) to set them as frames
+		while (i<len(frames)) and self._to_the_right:
+			framed.append(pg.transform.flip(frames[i], True, False))
+			i+=1
+		if (self._to_the_right):
+			frames = framed
+		self.destructionFrames = frames
 
 	def destruction(self):
 		"""Changes the painting and stops the move to animate the destruction of the attack."""

@@ -62,12 +62,17 @@ class KeysSettings(runtime.Widget):
     _showing = False
     _rtm = runtime.Runtime()
     _win = None
+    _returnCallBack = None
+    _return_button = None
     closed = True
     quitCallBack = None
 
     def __init__(self):
         runtime.Widget.__init__(self)
         self._rtm.addRoutine(self.postCheck)
+
+    def setReturnCallBack(self, func):
+        self._returnCallBack = func
 
     def postCheck(self):
         """Leave routine to handle callback"""
@@ -80,6 +85,7 @@ class KeysSettings(runtime.Widget):
     def popup(self):
         """Shows the window"""
         if self._rtm.running == False:
+            self._rtm.clear()
             self._win = pg.display.set_mode((600, 600))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)
@@ -91,6 +97,15 @@ class KeysSettings(runtime.Widget):
         """Loads the UI elements and display 'em"""
         j1 = runtime.Label()
         j2 = runtime.Label()
+
+        self._return_button = runtime.Button()
+        self._return_button.text = "Retour"
+        self._return_button.rect.x = self._rtm.target_win.get_width() - 5 - self._return_button.rect.width
+        self._return_button.rect.y = self._rtm.target_win.get_height() - 5 - self._return_button.rect.height
+        self._return_button.setCallBack(self._returnCallBack)
+        self._return_button.background_clicked = (0, 255, 8)
+        self._return_button.background = (76, 175, 80)
+        self._rtm.appendObject(self._return_button)
 
         list1 = []
         list2 = []

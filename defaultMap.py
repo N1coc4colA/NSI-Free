@@ -10,9 +10,9 @@ class TopBar(runtime.Widget):
 	_p2p = None
 	_p1p = None
 
-	def __init__(self):
+	def __init__(self, bg = (255, 255, 255), progress_bg = (200, 200, 200), p_fg_a = (100, 100, 255), p_fg_b = (150, 150, 255), text_color = (0, 0, 0)):
 		runtime.Widget.__init__(self)
-		self.color = (255, 255, 255)
+		self.color = bg
 		self.rect = pg.Rect((0, 0), (1200, 70))
 
 		#Decorative text as long as we don't use custom names (yet)
@@ -22,6 +22,9 @@ class TopBar(runtime.Widget):
 		self._p1l.font = pg.font.SysFont(None, 54)
 		self._p2l.font = self._p1l.font
 		self._p1l.rect.x = 10
+
+		self._p1l.color = text_color
+		self._p2l.color = text_color
 
 		#Make the progress bars for LPs
 		self._p1p = runtime.ProgressBar()
@@ -42,10 +45,12 @@ class TopBar(runtime.Widget):
 		self._p2l.rect.x = self.rect.width - self._p2l.rect.width - 10
 		self._p2p.rect.x = self.rect.width - self._p2p.rect.width - 10
 
-		self._p2p.foreground = (100, 100, 255)
-		self._p2p.background = (200, 200, 200)
-		self._p1p.foreground = (100, 100, 255)
-		self._p1p.background = (200, 200, 200)
+		self._p2p.foreground = p_fg_a
+		self._p1p.foreground = p_fg_a
+		self._p2p.background = progress_bg
+		self._p1p.background = progress_bg
+
+		self._second_foreground = p_fg_a
 
 	def customPaint(self):
 		"""Paints the widget"""
@@ -65,11 +70,15 @@ class TopBar(runtime.Widget):
 	def setLP2(self, val):
 		"""Set the Life Points of the 2nd player and updates it's LP bar."""
 		self._p2p.pos = val
+		if val >= 50:
+			self._p2p.foreground = self._second_foreground
 		self.makePaintUpdate = True
 
 	def setMLP1(self, val):
 		"""Set the Maximum Life Points of the 1st player."""
 		self._p1p.maximum = val
+		if val >= 50:
+			self._p1p.foreground = self._second_foreground
 		self.makePaintUpdate = True
 
 	def setMLP2(self, val):
@@ -112,13 +121,18 @@ class Map:
 	_pendingAttacks2 = []
 	_inAttack1 = None
 	_inAttack2 = None
-	_fp = "./maps/tlalok.image"
+	_fp = None
 	closed = True
 	scaled = None
 
-	def __init__(self):
+	def __init__(self, image_fp = "./maps/tlalok.image", win_size = (1200, 800), max_y = 790, min_y = 80, pop_border_padding = 10, bg = (255, 255, 255), progress_bg = (200, 200, 200), p_fg_a = (100, 100, 255), p_fg_b = (150, 150, 255), text_color = (0, 0, 0)):
 		self._rtm.addRoutine(self.postCheck)
-		self._topBar = TopBar()
+		self._fp = image_fp
+		self._topBar = TopBar(bg, progress_bg, p_fg_a, p_fg_b, text_color)
+		self.window_size = win_size
+		self.max_y = max_y
+		self.min_y = min_y
+		self.pop_border_padding = pop_border_padding
 
 	def winPaint(self, win):
 		"""The painting of the window"""
@@ -195,24 +209,22 @@ class Map:
 		if (self._inAttack1 != None) and (self._j2.rect.colliderect(self._inAttack1.rect)):
 			self._j2.touched(self._inAttack1)
 			self._j1.removeSA()
-			print("shot!")
 		if (self._inAttack2 != None) and (self._j1.rect.colliderect(self._inAttack2.rect)):
 			self._j1.touched(self._inAttack2)
 			self._j2removeSA()
-			print("shot!")
 
 	def checkPlayersPos(self):
 		"""Don't send the players out of the window! It checks and moves the players when needed to keep them in"""
 		if (self._j1 != None):
-			if (self._j1.rect.x+self._j1.rect.width)>(self._win.get_width()-10):
-				self._j1.rect.x = self._win.get_width()-10-self._j1.rect.width
-			elif self._j1.rect.x<10:
-				self._j1.rect.x = 10
+			if (self._j1.rect.x+self._j1.rect.width)>(self._win.get_width()-self.pop_border_padding):
+				self._j1.rect.x = self._win.get_width()-self.pop_border_padding-self._j1.rect.width
+			elif self._j1.rect.x<self.pop_border_padding:
+				self._j1.rect.x = self.pop_border_padding
 		if (self._j2 != None):
-			if (self._j2.rect.x+self._j2.rect.width)>(self._win.get_width()-10):
-				self._j2.rect.x = self._win.get_width()-10-self._j2.rect.width
-			elif self._j2.rect.x<10:
-				self._j2.rect.x = 10
+			if (self._j2.rect.x+self._j2.rect.width)>(self._win.get_width()-self.pop_border_padding):
+				self._j2.rect.x = self._win.get_width()-self.pop_border_padding-self._j2.rect.width
+			elif self._j2.rect.x<self.pop_border_padding:
+				self._j2.rect.x = self.pop_border_padding
 
 	def checkOORAttacks(self):
 		"""Check for Out Of Range attacks, when it goes out of th window, and remove it"""
@@ -222,14 +234,14 @@ class Map:
 		i1 = 0
 		i2 = 0
 		for a in self._pendingAttacks1:
-			if ((a.rect.x+a.rect.width)<=10) or (a.rect.x>(self._win.get_width()-10)):
+			if ((a.rect.x+a.rect.width)<=self.pop_border_padding) or (a.rect.x>(self._win.get_width()-self.pop_border_padding)):
 				val = self._rtm.countObjects()
 				a.remove()
 				self._rtm.removeObject(a.RuntimeOUID)
 				toRm1.append(i1)
 			i1+=1
 		for a in self._pendingAttacks2:
-			if ((a.rect.x+a.rect.width)<10) or (a.rect.x>(self._win.get_width()-10)):
+			if ((a.rect.x+a.rect.width)<self.pop_border_padding) or (a.rect.x>(self._win.get_width()-self.pop_border_padding)):
 				val = self._rtm.countObjects()
 				a.remove()
 				self._rtm.removeObject(a.RuntimeOUID)
@@ -267,7 +279,6 @@ class Map:
 	def handleSA1(self, r):
 		"""Callback to add a satic attack from P1"""
 		self._inAttack2 = r
-		print("Attacking P2!")
 
 	def handleSA2(self, r):
 		"""Callback to add a satic attack from P2"""
@@ -285,10 +296,10 @@ class Map:
 		self._topBar.setLP1(self._j1.max_lp)
 		#Set player's values
 		self._j1.isP1 = True
-		self._j1.min_y = 80
-		self._j1.max_y = 790
-		self._j1.rect.x = 10
-		self._j1.rect.y = 800 - self._j1.rect.y - self._j1.rect.height
+		self._j1.min_y = self.min_y
+		self._j1.max_y = self.max_y
+		self._j1.rect.x = self.pop_border_padding
+		self._j1.rect.y = self.window_size[1] - self._j1.rect.y - self._j1.rect.height
 		self.setupJ1Keys()
 		self._j1 = self._rtm.appendObject(self._j1)
 
@@ -301,10 +312,10 @@ class Map:
 		self._topBar.setMLP2(self._j2.max_lp)
 		self._topBar.setLP2(self._j2.max_lp)
 		self._j2.isP1 = False
-		self._j2.min_y = 80
-		self._j2.max_y = 790
-		self._j2.rect.x = 1200 - 10 - self._j2.rect.width
-		self._j2.rect.y = 800 - self._j2.rect.y - self._j2.rect.height
+		self._j2.min_y = self.min_y
+		self._j2.max_y = self.max_y
+		self._j2.rect.x = self.window_size[0] - self.pop_border_padding - self._j2.rect.width
+		self._j2.rect.y = self.window_size[1] - self._j2.rect.y - self._j2.rect.height
 		self.setupJ2Keys()
 		self._j2 = self._rtm.appendObject(self._j2)
 
@@ -333,8 +344,9 @@ class Map:
 	def popup(self):
 		"""Setup the win and Runtime env."""
 		if self._rtm.running == False:
+            #Clear all the content that was there
 			#Set the window
-			self._win = pg.display.set_mode((1200, 800))
+			self._win = pg.display.set_mode(self.window_size)
 			self._rtm.setWindow(self._win)
 			#Add our routines
 			self._rtm.addRoutine(self.postCheck)
@@ -349,12 +361,8 @@ class Map:
 			self.loadElements()
 			self._rtm.execute()
 
+	def clear(self):
+		self._rtm.clear()
+
 	def loadElements(self):
 		self._topBar = self._rtm.appendObject(self._topBar)
-
-import defaultPlayer
-
-m = Map()
-m.setJ1(defaultPlayer.Player())
-m.setJ2(defaultPlayer.Player())
-m.popup()

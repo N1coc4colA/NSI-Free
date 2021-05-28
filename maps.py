@@ -10,10 +10,12 @@ class MapChooser(runtime.Widget):
     _rtm = runtime.Runtime()
     _win = None
     _callBack = None
+    _returnCallBack = None
     _fp = ""
     _hasError = False
     _button = None
     _label = None
+    _return_button = None
     closed = True
 
     def __init__(self):
@@ -27,11 +29,17 @@ class MapChooser(runtime.Widget):
             self.closed = True
             self._rtm.quit()
 
+    def reset(self):
+        self._fp = ""
+        self._hasError = False
+
     def popup(self):
         """Shows the map chooser win"""
         if self._rtm.running == False:
             self._rtm.clear()
-            self._win = pg.display.set_mode((800, 800))
+            if self._win != None:
+                del self._win
+            self._win = pg.display.set_mode((800, 805))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)
             self.closed = False
@@ -54,10 +62,20 @@ class MapChooser(runtime.Widget):
             self._fp = os.path.splitext(fp)[0] + ".py"
             self._label.text = "Map choisie: " + str(f.read()).split("\n")[0]
 
+    def setReturnCallBack(self, func):
+        self._returnCallBack = func
+
+    def handleReturn(self):
+        #We have to make our RTM inst quit first, else it'll fail when recalling popup()
+        self._rtm.quit()
+        if self._returnCallBack:
+            self._returnCallBack()
+
     def handleNext(self):
         """Call callback when a map have been chosen."""
         if self._callBack != None:
             if self._fp != "":
+                self._rtm.quit()
                 self._callBack(self._fp)
 
     def reset(self):
@@ -80,6 +98,15 @@ class MapChooser(runtime.Widget):
         j1.font = pg.font.SysFont(None, 64)
         j1.rect.x = 20
         self._rtm.appendObject(j1)
+
+        self._return_button = runtime.Button()
+        self._return_button.text = "Retour"
+        self._return_button.rect.x = self._rtm.target_win.get_width() - 5 - self._return_button.rect.width
+        self._return_button.rect.y = self._rtm.target_win.get_height() - 5 - self._return_button.rect.height
+        self._return_button.setCallBack(self.handleReturn)
+        self._return_button.background_clicked = (0, 255, 8)
+        self._return_button.background = (76, 175, 80)
+        self._rtm.appendObject(self._return_button)
 
         #Put the button
         self._button = runtime.Button()

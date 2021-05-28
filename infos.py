@@ -7,6 +7,8 @@ class InfosWindow(runtime.Widget):
 	_showing = False
 	_rtm = runtime.Runtime()
 	_win = None
+	_returnCallBack = None
+	_return_button = None
 	closed = True
 
 	def __init__(self):
@@ -19,10 +21,20 @@ class InfosWindow(runtime.Widget):
 			self.closed = True
 			self._rtm.quit()
 
+	def setReturnCallBack(self, func):
+		self._returnCallBack = func
+
+	def handleReturn(self):
+		#We have to make our RTM inst quit first, else it'll fail when recalling popup()
+		self._rtm.quit()
+		if self._returnCallBack:
+			self._returnCallBack()
+
 	def popup(self):
 		"""Shows th" win"""
 		if self._rtm.running == False:
-			self._win = pg.display.set_mode((710, 310))
+			self._rtm.clear()
+			self._win = pg.display.set_mode((710, 350))
 			self._rtm.setWindow(self._win)
 			self._rtm.addRoutine(self.postCheck)
 			self.closed = False
@@ -38,6 +50,15 @@ class InfosWindow(runtime.Widget):
 		l1.rect.x = 10
 		l1.rect.y = 5
 		self._rtm.appendObject(l1)
+
+		self._return_button = runtime.Button()
+		self._return_button.text = "Retour"
+		self._return_button.rect.x = self._rtm.target_win.get_width() - 5 - self._return_button.rect.width
+		self._return_button.rect.y = self._rtm.target_win.get_height() - 5 - self._return_button.rect.height
+		self._return_button.setCallBack(self.handleReturn)
+		self._return_button.background_clicked = (0, 255, 8)
+		self._return_button.background = (76, 175, 80)
+		self._rtm.appendObject(self._return_button)
 
         #Create the label for each line
 		l2 = runtime.Label()

@@ -148,18 +148,31 @@ class Scene(Widget):
 
 class Runtime:
     objectList = []
-    target_win = None
-    running = False
-    forceRePaint = False
-    afterPropagationUpdate = False
-    _firstLoad = True
-    _routines = []
-    _mroutines = []
-    _oneShotRoutines = []
-    _leaveCallBack = None
-    _paintCallBack = None
-    _ouid = 0
-    _fromInternalNeedsRepaint = False
+
+    def __init__(self):
+        self._firstLoad = True
+        self._routines = []
+        self._mroutines = []
+        self._oneShotRoutines = []
+        self._leaveCallBack = None
+        self._paintCallBack = None
+        self._ouid = 0
+        self._fromInternalNeedsRepaint = False
+        self.target_win = None
+        self.running = False
+        self.forceRePaint = False
+        self.afterPropagationUpdate = False
+
+    def __exit(self):
+        if self.target_win != None:
+            pygame.display.quit()
+            del self.target_win
+
+        # Ensure pg.init() was done. Else it might give strange purposes in some cases, when you play between multiple windows
+        pygame.init()
+
+        if self._leaveCallBack != None:
+            self._leaveCallBack()
 
     def countObjects(self):
         return len(self.objectList)
@@ -229,6 +242,7 @@ class Runtime:
     def execute(self):
         # Main Loop
         self.running = True
+
         while self.running:
             for routine in self._routines:
                 routine()
@@ -237,6 +251,9 @@ class Runtime:
                 osr()
             if (not self._oneShotRoutines) == False:
                 self._oneShotRoutines.clear()
+
+            if self.running == False:
+                break
 
             eventList = pygame.event.get()
             shouldRePaint = False
@@ -250,7 +267,11 @@ class Runtime:
                             shouldRePaint = True
                     else:
                         run = False
+                    if self.running == False:
+                        break
                     i+=1
+                if self.running == False:
+                    break
             else:
                 #Share the events
                 for event in eventList:
@@ -260,6 +281,7 @@ class Runtime:
                             quit(1)
                         else:
                             self._leaveCallBack()
+                            break
                     else:
                         run = True
                         propagate = False
@@ -283,16 +305,29 @@ class Runtime:
                                          shouldRePaint = True
                             else:
                                 run = False
+                            if self.running == False:
+                                break
                             i+=1
             #Mid routines, for example, if you want to remove something that have been updated before it gets painted
             for mrtn in self._mroutines:
                 mrtn()
+
+            if self.running == False:
+                break
+
             #Make new paintings if needed
             if (shouldRePaint == True) or (self.forceRePaint == True) or (self._firstLoad == True) or (self._fromInternalNeedsRepaint == True):
                 if self._firstLoad:
                     self._firstLoad = False
+
+                if self.running == False:
+                    break
                 self.paintWindow()
                 continuePainting = True
+
+                if self.running == False:
+                    break
+
                 j = 0
                 while continuePainting and j<len(self.objectList):
                     if self.objectList[j] != None:
@@ -300,11 +335,16 @@ class Runtime:
                         self.objectList[j].makePaintUpdate = False
                     else:
                         continuePainting = False
+
+                    if self.running == False:
+                        break
                     j+=1
 
+                if self.running == False:
+                    break;
+
             pygame.display.update()
-        if self._leaveCallBack != None:
-            self._leaveCallBack()
+        self.__exit()
 
 """
         TEMPLATE:

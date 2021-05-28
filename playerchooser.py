@@ -1,11 +1,10 @@
-﻿import runtime
+import runtime
 import pygame as pg
 import clickableItem as cbi
 import os
 
 class PlayerChooser(runtime.Widget):
     """Window to let the users choose their player."""
-    _showing = False
     _rtm = runtime.Runtime()
     _win = None
     _callBack = None
@@ -16,7 +15,9 @@ class PlayerChooser(runtime.Widget):
     _label1 = None
     _label2 = None
     _button = None
-    _endedCb = None
+    _returnCallBack = None
+    _return_button = None
+    quitCallBack = None
 
     def __init__(self):
         runtime.Widget.__init__(self)
@@ -28,17 +29,19 @@ class PlayerChooser(runtime.Widget):
         if self.closed == True and self._rtm.running == True:
             self.closed = True
             self._rtm.quit()
-            if (self._endedCb != None):
-                self._endedCb()
+            if (self.quitCallBack != None):
+                self.quitCallBack()
 
-    def setEndCallBack(self, func):
-        self._endedCb = func
+    def reset(self):
+        self._fp1 = ""
+        self._fp2 = ""
+        self._hasError = False
 
     def popup(self):
         """Shows the win"""
         if self._rtm.running == False:
             self._rtm.clear()
-            self._win = pg.display.set_mode((800, 800))
+            self._win = pg.display.set_mode((900, 800))
             self._rtm.setWindow(self._win)
             self._rtm.addRoutine(self.postCheck)
             self.closed = False
@@ -47,6 +50,15 @@ class PlayerChooser(runtime.Widget):
 
     def setCallBack(self, func):
         self._callBack = func
+
+    def setReturnCallBack(self, func):
+        self._returnCallBack = func
+
+    def handleReturn(self):
+        #We have to make our RTM inst quit first, else it'll fail when recalling popup()
+        self._rtm.quit()
+        if self._returnCallBack:
+            self._returnCallBack()
 
     def onItemClick1(self, fp):
         """Callback to store the players chosen."""
@@ -78,6 +90,7 @@ class PlayerChooser(runtime.Widget):
         """Calls callback when everyone chose their player."""
         if self._callBack != None:
             if (self._fp2 != "" and self._fp1 != ""):
+                self._rtm.quit()
                 self._callBack(self._fp1, self._fp2)
             else:
                 self._hasError = True
@@ -117,11 +130,20 @@ class PlayerChooser(runtime.Widget):
         j1.rect.x = 20
         self._rtm.appendObject(j1)
 
+        self._return_button = runtime.Button()
+        self._return_button.text = "Retour"
+        self._return_button.rect.x = self._rtm.target_win.get_width() - 5 - self._return_button.rect.width
+        self._return_button.rect.y = self._rtm.target_win.get_height() - 5 - self._return_button.rect.height
+        self._return_button.setCallBack(self.handleReturn)
+        self._return_button.background_clicked = (0, 255, 8)
+        self._return_button.background = (76, 175, 80)
+        self._rtm.appendObject(self._return_button)
+
         #Put the button
         self._button = runtime.Button()
         self._button.text = "Suivant >"
         self._button.font = pg.font.SysFont(None, 32)
-        self._button.rect.x = 595
+        self._button.rect.x = self._rtm.target_win.get_width() - 5 - self._button.rect.width
         self._button.rect.y = 5
         self._button.setCallBack(self.handleNext)
         self._button.background = (255, 100, 100)

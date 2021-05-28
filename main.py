@@ -3,6 +3,7 @@ import pygame
 import keys, maps, infos
 import playerchooser
 import Loader
+import runtime as rtm
 
 surfaceW = 800 #Dimension de la fenêtre / Largeur
 surfaceH = 600 #Dimension de la fenêtre / Longueur
@@ -21,7 +22,8 @@ class Menu:
         )
 
 	def load(self, *groupes):
-		font = pygame.font.SysFont('Helvetica', 24, bold=True)
+		pygame.font.init()
+		font = pygame.font.SysFont("Helvetica", 24, bold=True)
         # noms des menus et commandes associées
 		items = (
             ('JOUER', self.playCallBack),
@@ -99,7 +101,8 @@ class MenuBouton(pygame.sprite.Sprite):
 
     def executerCommande(self):
         # Appel de la commande du bouton
-        self._commande()
+        if self._commande:
+            self._commande()
 
 class Jeu :
     """ Simulacre de l'interface du jeu """
@@ -151,15 +154,19 @@ class Application:
 		pygame.init()
 		pygame.display.set_caption("Pringle's Fight")
 
-		self._pC.setEndCallBack(self.retour_au_menu)
-
 		self.fond = (150,)*3
 
 		self.fenetre = pygame.display.set_mode((surfaceW,surfaceH))
         # Groupe de sprites utilisé pour l'affichage
 		self.groupeGlobal = pygame.sprite.Group()
 		self.statut = True
-		self._keys.quitCallBack = self.retour_au_menu
+
+        #Mise en place des fonctions de retours
+		self._infos.setReturnCallBack(self.retour_au_menu)
+		self._keys.setReturnCallBack(self.retour_au_menu)
+		self._maps.setReturnCallBack(self.retour_au_menu)
+		self._maps.setCallBack(self.handlePlayerChooser)
+		self._pC.setReturnCallBack(self.retour_au_menu)
 		self._pC.setCallBack(self.handleMapLaunch)
 
 	def _initialiser(self):
@@ -174,20 +181,32 @@ class Application:
 		self._mapPath = fp
 
 	def retour_au_menu(self):
-            self.menu()
-            self.revenir_menu()
+		#Else we get issue while getting back from Runtime instances
+		self.statut = False
+		self.update()
+		self.reset()
+		self.menu()
+		self.revenir_menu()
+
+	def reset(self):
+		self._pC.reset()
+		self._maps.reset()
+		del self.fenetre
+		self.fenetre = pygame.display.set_mode((surfaceW,surfaceH))
+		self.groupeGlobal = pygame.sprite.Group()
+		self.statut = True
 
 	def menu(self):
         # Affichage du menu
+
 		self._initialiser()
 		self.ecran = Menu()
-		self.ecran.quitCallBack = self.quitter
-
-		self._maps.setCallBack(self.handlePlayerChooser)
 
 		self.ecran.commandsCallBack = self._keys.popup
 		self.ecran.playCallBack = self._maps.popup
 		self.ecran.howToCallBack = self._infos.popup
+		self.ecran.quitCallBack = self.quitter
+
 		self.ecran.load(self.groupeGlobal)
 
 	def processMapLeave(self):
@@ -216,33 +235,35 @@ class Application:
 		self.ecran = Jeu(self, self.groupeGlobal)
 
 	def quitter(self):
-		self.statut = False
+		pygame.display.quit()
 		pygame.quit()
 
 	def update(self):
 		events = pygame.event.get()
 
-		for event in events :
+		for event in events:
 			if event.type == pygame.QUIT:
-				self.quitter()
+				self.statut = False
 				return
 
-		self.fenetre.fill(self.fond)
-		self.ecran.update(events)
-		self.groupeGlobal.update()
-		self.groupeGlobal.draw(self.fenetre)
-		pygame.display.update()
+		if self.statut == True:
+			self.fenetre.fill(self.fond)
+			self.ecran.update(events)
+			self.groupeGlobal.update()
+			self.groupeGlobal.draw(self.fenetre)
+			pygame.display.update()
 
 	def revenir_menu(self):
 		clock = pygame.time.Clock()
 		app.statut = True
+		timer = pygame.time.get_ticks()
 		while app.statut:
+			if (pygame.time.get_ticks() - timer) >= 30:
 				app.update()
-				clock.tick(30)
+		self.quitter()
 
 app = Application()
 app.menu()
-
 app.revenir_menu()
 
 #pygame.quit()

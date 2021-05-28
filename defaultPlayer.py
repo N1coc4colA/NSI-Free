@@ -31,14 +31,6 @@ class Player(runtime.Widget):
 	max_y = 0
 	min_y = 0
 
-	#Player's motions
-	leftMotion = None
-	rightMotion = None
-	downMotion = None
-	upMotion = None
-	SAMotion = None
-	MAMotion = None
-
 	#Callback to add attacks and such for updates
 	MACallBack = None
 	SACallBack = None
@@ -57,6 +49,25 @@ class Player(runtime.Widget):
 	#Used for painting and such
 	isP1 = None
 	_goingDown = False
+
+	#Public "API", commonly, it's what's used but you might want to reimplement some funcs, but mainly these members fit the needs
+	leftMotion = None
+	rightMotion = None
+	downMotion = None
+	upMotion = None
+	SAMotion = None
+	MAMotion = None
+
+	move_up_speed = 2.5
+	move_down_indent = 1
+	move_left_speed = 20
+	move_left_indent = 5
+	move_right_speed = 20
+	move_right_indent = 5
+	sa_cool_down = 400
+	ma_cool_down = 2000
+	ma_p1 = "./players/perso_2/mvg.png"
+	ma_p2 = None
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
@@ -77,7 +88,7 @@ class Player(runtime.Widget):
 			self._old = "u"
 		elif self._old == "u":
 			#Then move to top, but not too fast
-			if ((pg.time.get_ticks() - self.sourceTicks)/1000)>0.0025:
+			if (pg.time.get_ticks() - self.sourceTicks)>self.move_up_speed:
 				#We go to the top
 				if (self.rect.y > self.min_y) and (self._yi > 0):
 					self.rect.y = self.rect.y - self._yi
@@ -85,7 +96,7 @@ class Player(runtime.Widget):
 				#We went to the top, then we get back on the floor
 				elif (self.max_y > (self.rect.y + self.rect.height)):
 					if (self._yi > 0):
-						self._yi = -self._yi-1
+						self._yi = -self._yi - self.move_down_indent
 					self.rect.y = self.rect.y - self._yi
 					if ((self.rect.y + self.rect.height) < self.min_y):
 						self.rect.y = self.min_y - self.rect.height
@@ -94,6 +105,11 @@ class Player(runtime.Widget):
 				else:
 					self._lockAcc = False
 					self._lockFunc = None
+				#Put it in the old direction
+				if self._toRight:
+					self.moveRight()
+				else:
+					self.moveLeft()
 				self.updateTimer = True
 
 	def moveLeft(self):
@@ -102,9 +118,15 @@ class Player(runtime.Widget):
 			self._lockAcc = True
 			self._lockFunc = None
 			self._toRight = False
+
+			#We might need to reset the y pos!
+			if self._old == "d":
+				self.rect.height = self._oldH
+				self.rect.x = self.max_y - self.rect.height
+
 			#Don't let players go too fast!
-			if (((pg.time.get_ticks() - self.sourceTicks)/1000)>0.02) or (self._old != "l"):
-				self.rect.x = self.rect.x -5
+			if (pg.time.get_ticks() - self.sourceTicks)>self.move_left_speed or (self._old != "l"):
+				self.rect.x = self.rect.x - self.move_left_indent
 				self.updateTimer = True
 			self._old = "l"
 
@@ -114,9 +136,15 @@ class Player(runtime.Widget):
 			self._lockAcc = True
 			self._lockFunc = None
 			self._toRight = True
+
+			#We might need to reset the y pos!
+			if self._old == "d":
+				self.rect.height = self._oldH
+				self.rect.x = self.max_y - self.rect.height
+
 			#To don't let players go too fast
-			if (((pg.time.get_ticks() - self.sourceTicks)/1000)>0.02) or (self._old != "r"):
-				self.rect.x = self.rect.x +5
+			if (pg.time.get_ticks() - self.sourceTicks)>self.move_right_speed or (self._old != "r"):
+				self.rect.x = self.rect.x + self.move_right_indent
 				self.updateTimer = True
 			self._old = "r"
 
@@ -128,6 +156,7 @@ class Player(runtime.Widget):
 			self._lockAcc = True
 			self._lockFunc = self.moveDown
 			self._old = "d"
+			self._oldH = self.rect.height
 		elif self._old == "d":
 			self._lockAcc = False
 			self._lockFunc = None
@@ -138,14 +167,13 @@ class Player(runtime.Widget):
 			self._lockAcc = True
 			if self.SACallBack != None:
 				#Don't let players attack too fast
-				if (self._usingSA == False) and (((pg.time.get_ticks() - self._saTime)/1000) > 0.4):
-					#self.SACallBack(att)
+				if (self._usingSA == False) and (pg.time.get_ticks() - self._saTime) > self.sa_cool_down:
 					att = defaultAttack.Attack
 					att.degs = 20
 					att.rect = self.rect
 					self._saTime = pg.time.get_ticks()
 					self._lastTime = pg.time.get_ticks()
-					print("Attack!")
+					self.SACallBack(att)
 				else:
 					self._usingSA = False
 					#Set to nothing to make it ignored, this will no more be an attack.
@@ -157,11 +185,14 @@ class Player(runtime.Widget):
 	def generateMA(self):
 		"""Function that generates a moving attack (e.g. an arrow)."""
 		#Use the timer to don't make too much attacks too fast
-		if (self.MACallBack != None) and (((pg.time.get_ticks() - self._lastTime)/1000) > 2) and (self._goingDown == False):
+		if (self.MACallBack != None) and (pg.time.get_ticks() - self._lastTime) > self.ma_cool_down and (self._goingDown == False):
 			self._lastTime = pg.time.get_ticks()
             #Set to the left or the right, be careful...
 			att = defaultAttack.MovingAttack(self._toRight)
-			att.image = pg.image.load("./players/perso_2/mvg.png")
+			if self.ma_p1 != None:
+				att.image = pg.image.load(self.ma_)
+			if self.ma_p2 != None:
+				att.setFrameDir(self.ma_p2)
 			att.rect.y = self.rect.y + (self.rect.height - att.rect.height)/2
 			if self._toRight:
 				att.rect.x = self.rect.x + self.rect.width
