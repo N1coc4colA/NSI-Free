@@ -71,6 +71,7 @@ class Player(runtime.Widget):
 		#Used for painting and such
 		self.isP1 = None
 		self._goingDown = False
+		self.playerName = "Default"
 
 	def moveUp(self):
 		"""Jump handler, move up"""
