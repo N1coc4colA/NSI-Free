@@ -236,8 +236,8 @@ class Runtime:
         self._leaveCallBack = func
 
     def clear(self):
-        self.objectList.clear()
         self._ouid = 0
+        self.objectList.clear()
         self._firstLoad = True
 
     def execute(self):

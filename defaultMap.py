@@ -50,7 +50,15 @@ class TopBar(runtime.Widget):
 		self._p2p.background = progress_bg
 		self._p1p.background = progress_bg
 
-		self._second_foreground = p_fg_a
+		self._second_foreground = p_fg_b
+
+	def setP1Name(self, text):
+		self._p1l.text = text
+		self.makePaintUpdate = True
+
+	def setP2Name(self, text):
+		self._p2l.text = text
+		self.makePaintUpdate = True
 
 	def customPaint(self):
 		"""Paints the widget"""
@@ -65,12 +73,14 @@ class TopBar(runtime.Widget):
 	def setLP1(self, val):
 		"""Set Life Points of the 1st player and updates it's LP bar."""
 		self._p1p.pos = val
+		if val <= 50:
+			self._p1p.foreground = self._second_foreground
 		self.makePaintUpdate = True
 
 	def setLP2(self, val):
 		"""Set the Life Points of the 2nd player and updates it's LP bar."""
 		self._p2p.pos = val
-		if val >= 50:
+		if val <= 50:
 			self._p2p.foreground = self._second_foreground
 		self.makePaintUpdate = True
 
@@ -122,8 +132,13 @@ class Map:
 	_inAttack1 = None
 	_inAttack2 = None
 	_fp = None
+	_onExit = None
+	_deathWas1 = None
+	_hasDeath = False
 	closed = True
 	scaled = None
+	_timerHint1 = pg.time.get_ticks()
+	_timerHint2 = pg.time.get_ticks()
 
 	def __init__(self, image_fp = "./maps/tlalok.image", win_size = (1200, 800), max_y = 790, min_y = 80, pop_border_padding = 10, bg = (255, 255, 255), progress_bg = (200, 200, 200), p_fg_a = (100, 100, 255), p_fg_b = (150, 150, 255), text_color = (0, 0, 0)):
 		self._rtm.addRoutine(self.postCheck)
@@ -134,15 +149,42 @@ class Map:
 		self.min_y = min_y
 		self.pop_border_padding = pop_border_padding
 
+	def setExitCB(self, func):
+		self._onExit = func
+
+	def handleDeath(self, player):
+		self._deathWas1 = player
+		self._rtm.clear()
+		self.deathLoadElements()
+
+	def deathLoadElements(self):
+		label = runtime.Label()
+		if self._deathWas1 == True:
+			label.text = "Le joueur 1 a gagné!"
+		else:
+			label.text = "Le joueur 2 a gagné!"
+		label.rect.x = 200
+		label.rect.y = 100
+		self._rtm.appendObject(label)
+		button = runtime.Button()
+		button.text = "Retour"
+		button.rect.x = 200
+		button.rect.y = 200
+		button.setCallBack(self._onExit)
+		self._rtm.appendObject(button)
+		self._hasDeath = True
+
 	def winPaint(self, win):
 		"""The painting of the window"""
-		if self._win != None:
+		if self._win != None and self._hasDeath == False:
 			if self.scaled != None:
 				self._win.blit(self.scaled, pg.Rect((0, 0), (self._win.get_width(), self._win.get_height())))
 			#If no win was here went setting the fp, there's no scaled image, so we build it here.
 			elif self._fp != None:
 				self.scaled = pg.transform.scale(pg.image.load(self._fp), (self._win.get_width(), self._win.get_height()))
 				self._win.blit(self.scaled, pg.Rect((0, 0), (self._win.get_width(), self._win.get_height())))
+		elif self._win != None:
+			pg.draw.rect(self._win, (255, 255, 255), self._win.get_rect())
 
 	def setImage(self, fp):
 		"""Set the map's image by it's path (fp)"""
@@ -154,6 +196,8 @@ class Map:
 
 	def checkMovingAttacks(self):
 		"""Check collisions of the moving attacks (e.g.: an arrow) of both players"""
+		if self._hasDeath == True:
+			return
         #Keep track of the objects to remove. We must remove them from the attacks lists. We store their indexes here
 		toRm2 = []
 		toRm1 = []
@@ -206,15 +250,22 @@ class Map:
 
 	def checkStaticAttacks(self):
 		"""Check collisions of "Static" attack, such as a kick, for both players"""
-		if (self._inAttack1 != None) and (self._j2.rect.colliderect(self._inAttack1.rect)):
+		if self._hasDeath == True:
+			return
+		if (self._inAttack1 != None) and (self._j2.rect.colliderect(self._inAttack1.rect)) and ((pg.time.get_ticks() - self._timerHint2) > 100):
+			print("Rect:", self._inAttack1.rect, ", Collision:", (self._j2.rect.colliderect(self._inAttack1.rect)))
+			self._timerHint2 = pg.time.get_ticks()
 			self._j2.touched(self._inAttack1)
-			self._j1.removeSA()
-		if (self._inAttack2 != None) and (self._j1.rect.colliderect(self._inAttack2.rect)):
+			self._inAttack1 = None
+		if (self._inAttack2 != None) and (self._j1.rect.colliderect(self._inAttack2.rect)) and ((pg.time.get_ticks() - self._timerHint1) > 100):
+			self._timerHint1 = pg.time.get_ticks()
 			self._j1.touched(self._inAttack2)
-			self._j2.removeSA()
+			self._inAttack2 = None
 
 	def checkPlayersPos(self):
 		"""Don't send the players out of the window! It checks and moves the players when needed to keep them in"""
+		if self._hasDeath == True:
+			return
 		if (self._j1 != None):
 			if (self._j1.rect.x+self._j1.rect.width)>(self._win.get_width()-self.pop_border_padding):
 				self._j1.rect.x = self._win.get_width()-self.pop_border_padding-self._j1.rect.width
@@ -228,6 +279,8 @@ class Map:
 
 	def checkOORAttacks(self):
 		"""Check for Out Of Range attacks, when it goes out of th window, and remove it"""
+		if self._hasDeath == True:
+			return
         #Keep track of the objects to remove. We must remove them from the attacks lists. We store their indexes here
 		toRm2 = []
 		toRm1 = []
@@ -291,6 +344,7 @@ class Map:
 		self._j1.MACallBack = self.handleMA1
 		self._j1.SACallBack = self.handleSA1
 		self._j1.LPCallBack = self._topBar.setLP1
+		self._j1.setDeathCB(self.handleDeath)
 		#Update UI's values
 		self._topBar.setMLP1(self._j1.max_lp)
 		self._topBar.setLP1(self._j1.max_lp)
@@ -302,6 +356,7 @@ class Map:
 		self._j1.rect.y = self.window_size[1] - self._j1.rect.y - self._j1.rect.height
 		self.setupJ1Keys()
 		self._j1 = self._rtm.appendObject(self._j1)
+		self._topBar.setP1Name(self._j1.playerName)
 
 	def setJ2(self, j):
 		"""Sets the second player"""
@@ -309,6 +364,7 @@ class Map:
 		self._j2.MACallBack = self.handleMA2
 		self._j2.SACallBack = self.handleSA2
 		self._j2.LPCallBack = self._topBar.setLP2
+		self._j2.setDeathCB(self.handleDeath)
 		self._topBar.setMLP2(self._j2.max_lp)
 		self._topBar.setLP2(self._j2.max_lp)
 		self._j2.isP1 = False
@@ -318,6 +374,7 @@ class Map:
 		self._j2.rect.y = self.window_size[1] - self._j2.rect.y - self._j2.rect.height
 		self.setupJ2Keys()
 		self._j2 = self._rtm.appendObject(self._j2)
+		self._topBar.setP2Name(self._j2.playerName)
 
 	def setupJ1Keys(self):
 		"""Get keys that have been set in configuration for the first player."""
@@ -337,14 +394,9 @@ class Map:
 		self._j2.saKey =    keys.switcher["p2_at1"]
 		self._j2.maKey =    keys.switcher["p2_at2"]
 
-	def deadCallBack(self, isP1):
-		"""Makes a player dead and draw who won on the win"""
-		pass
-
-	def popup(self):
+	def popup(self, shouldLoad = True):
 		"""Setup the win and Runtime env."""
 		if self._rtm.running == False:
-            #Clear all the content that was there
 			#Set the window
 			self._win = pg.display.set_mode(self.window_size)
 			self._rtm.setWindow(self._win)

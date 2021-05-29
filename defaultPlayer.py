@@ -38,6 +38,7 @@ class Player(runtime.Widget):
 	_saTime = pg.time.get_ticks()
 	_usingSA = False
 	_toRight = False
+	_deathCB = None
 
 	#The LPs
 	_lp = 100
@@ -101,7 +102,6 @@ class Player(runtime.Widget):
 					self._lockAcc = False
 					self._lockFunc = None
 				#Put it in the old direction
-				print("Reach")
 				if self._toRight:
 					self.moveRight()
 				else:
@@ -117,12 +117,17 @@ class Player(runtime.Widget):
 
 			#We might need to reset the y pos!
 			if self._old == "d":
-				self.rect.height = self._oldH
-				self.rect.x = self.max_y - self.rect.height
+				if (self._yi > 0):
+					self._yi = -self._yi - self.move_down_indent
+				self.rect.y = self.rect.y - self._yi
+				if ((self.rect.y + self.rect.height) < self.min_y):
+					self.rect.y = self.min_y - self.rect.height
 
 			#Don't let players go too fast!
 			if (pg.time.get_ticks() - self.sourceTicks)>self.move_left_speed or (self._old != "l"):
-				self.rect.x = self.rect.x - self.move_left_indent
+				tmp_rect = self.rect
+				tmp_rect.x = self.rect.x - self.move_left_indent
+				self.rect = tmp_rect
 				self.updateTimer = True
 			self._old = "l"
 
@@ -135,12 +140,17 @@ class Player(runtime.Widget):
 
 			#We might need to reset the y pos!
 			if self._old == "d":
-				self.rect.height = self._oldH
-				self.rect.x = self.max_y - self.rect.height
+				if (self._yi > 0):
+					self._yi = -self._yi - self.move_down_indent
+				self.rect.y = self.rect.y - self._yi
+				if ((self.rect.y + self.rect.height) < self.min_y):
+					self.rect.y = self.min_y - self.rect.height
 
 			#To don't let players go too fast
 			if (pg.time.get_ticks() - self.sourceTicks)>self.move_right_speed or (self._old != "r"):
-				self.rect.x = self.rect.x + self.move_right_indent
+				tmp_rect = self.rect
+				tmp_rect.x = self.rect.x + self.move_right_indent
+				self.rect = tmp_rect
 				self.updateTimer = True
 			self._old = "r"
 
@@ -150,9 +160,8 @@ class Player(runtime.Widget):
 			#We lock during "2 runs", one time this is called, so we lock then the second update will cause this to be called and we then unlock.
 			#So the players can't get on the floor and move in the same time, or attack.
 			self._lockAcc = True
-			self._lockFunc = self.moveDown
+			self._lockFunc = None
 			self._old = "d"
-			self._oldH = self.rect.height
 		elif self._old == "d":
 			self._lockAcc = False
 			self._lockFunc = None
@@ -166,7 +175,7 @@ class Player(runtime.Widget):
 				if (self._usingSA == False) and (pg.time.get_ticks() - self._saTime) > self.sa_cool_down:
 					att = defaultAttack.Attack
 					att.degs = 20
-					att.rect = self.rect
+					att.rect = pg.Rect((self.rect.x, self.rect.y), (self.rect.width, self.rect.height))
 					self._saTime = pg.time.get_ticks()
 					self._lastTime = pg.time.get_ticks()
 					self.SACallBack(att)
@@ -177,6 +186,9 @@ class Player(runtime.Widget):
 			self._old = "s"
 		elif self._old == "s":
 			self._lockAcc = False
+			self._usingSA = False
+			#Set to nothing to make it ignored, this will no more be an attack.
+			self.SACallBack(None)
 
 	def generateMA(self):
 		"""Function that generates a moving attack (e.g. an arrow)."""
@@ -203,27 +215,21 @@ class Player(runtime.Widget):
 			if (pg.time.get_ticks() - self._saTime) > 0.1:
 				self.generateSA()
 
-	def removeSA(self):
-		self.generateSA()
-
 	def touched(self, att):
 		"""Handles attacks from the opponent"""
 		#If there's the callback, we update the life points
 		if (self.LPCallBack != None):
 			self._lp-=att.degs
 			self.LPCallBack(self._lp)
+		if self._lp <= 0 and self._deathCB != None:
+			self._deathCB(self.isP1)
+
+	def setDeathCB(self, func):
+		self._deathCB = func
 
 	def update(self, event):
 		"""Event handler"""
 		if event == None or event.type == pg.KEYDOWN:
-
-			if self._old == "s" and self.SAMotion != None and self.SAMotion.animEnded() == True:
-				self._lockFunc = None
-				self._lockAcc = False
-				if self._toRight:
-					self.moveRight()
-				else:
-					self.moveLeft()
 
         #At the beginning, there's no move , so if it's P1 or P2, choose right or left motion.
 			if (self._firstPaint):

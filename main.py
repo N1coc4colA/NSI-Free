@@ -41,7 +41,7 @@ class Menu:
                 font,
                 x,
                 y,
-                200,
+                250,
                 50,
                 cmd
             )
@@ -222,7 +222,9 @@ class Application:
 	def handleMapLaunch(self, fp1, fp2):
 		self._pp1 = fp1
 		self._pp2 = fp2
-		Loader.loadMap(self._mapPath, self._pp1, self._pp2).popup()
+		curr_map = Loader.loadMap(self._mapPath, self._pp1, self._pp2)
+		curr_map.setExitCB(self.retour_au_menu)
+		curr_map.popup()
 
 	def jeu(self):
         # Affichage du jeu
