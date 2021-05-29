@@ -9,9 +9,6 @@ class Player(runtime.Widget):
 	"""Player base class, meant to be used in any player that have to be loaded."""
 	_xi = 0
 	_yi = 2
-	_lockAcc = False
-	_lockFunc = None
-	_old = None
     #At the beginnig, we use this before the first move
 	_firstPaint = True
 
@@ -46,10 +43,6 @@ class Player(runtime.Widget):
 	_lp = 100
 	max_lp = 100
 
-	#Used for painting and such
-	isP1 = None
-	_goingDown = False
-
 	#Public "API", commonly, it's what's used but you might want to reimplement some funcs, but mainly these members fit the needs
 	leftMotion = None
 	rightMotion = None
@@ -71,6 +64,13 @@ class Player(runtime.Widget):
 
 	def __init__(self):
 		runtime.Widget.__init__(self)
+		
+		self._lockAcc = False
+		self._lockFunc = None
+		self._old = None
+		#Used for painting and such
+		self.isP1 = None
+		self._goingDown = False
 
 	def moveUp(self):
 		"""Jump handler, move up"""
