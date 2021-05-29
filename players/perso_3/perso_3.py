@@ -10,6 +10,6 @@ class Player(defaultPlayer.Player):
 		self.leftMotion = motion.Motion("./players/perso_3/thanos_deplacement", self, speed = 0.1, invert = True)
 		self.rightMotion = motion.Motion("./players/perso_3/thanos_deplacement", self, speed = 0.1)
 		self.upMotion = motion.Motion("./players/perso_3/thanos_saut", self, speed = 0.4)
-		self.downMotion = motion.Motion("./players/perso4_3/thanos_repos", self, yi=5)
+		self.downMotion = motion.Motion("./players/perso_3/thanos_repos", self, yi=5)
 		self.SAMotion = motion.Motion("./players/perso_3/thanos_attaque1", self, speed = 0.2)
 		self.downMotion.setRollEnabled(False)
