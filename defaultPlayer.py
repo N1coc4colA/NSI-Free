@@ -59,7 +59,7 @@ class Player(runtime.Widget):
 	move_right_speed = 20
 	move_right_indent = 5
 	sa_cool_down = 400
-	ma_cool_down = 2000
+	ma_cool_down = 1500
 	ma_p1 = "./players/perso_2/mvg.png"
 	ma_p2 = None
 
