@@ -152,7 +152,7 @@ class Application:
 
 	def __init__(self):
 		pygame.init()
-		pygame.display.set_caption("Pringle's Fight")
+		pygame.display.set_caption("TNT Fight")
 
 		self.fond = (150,)*3
 
